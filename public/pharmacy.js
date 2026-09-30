@@ -2,72 +2,58 @@ const $ = (selector) =>
   document.querySelector(selector);
 
 let token =
-  localStorage.getItem(
-    "dawai_pharmacy_token"
-  );
+  localStorage.getItem("dawai_pharmacy_token");
 
 let inventoryRows = [];
 
 
-/* =========================================================
+/* =========================================
    الرسائل
-========================================================= */
+========================================= */
 
-function msg(
-  selector,
-  text
-) {
-  const el = $(selector);
+function msg(selector, text) {
+  const element = $(selector);
 
-  if (el) {
-    el.textContent =
-      text || "";
+  if (element) {
+    element.textContent = text || "";
   }
 }
 
 
-/* =========================================================
+/* =========================================
    تبديل الواجهات
-========================================================= */
+========================================= */
 
 function show(id) {
   [
     "loginView",
     "registerView",
     "dashboardView"
-  ].forEach((x) => {
-    const el = $("#" + x);
+  ].forEach((viewId) => {
+    const element = $("#" + viewId);
 
-    if (el) {
-      el.classList.add(
-        "hidden"
-      );
+    if (element) {
+      element.classList.add("hidden");
     }
   });
 
-  const target =
-    $("#" + id);
+  const target = $("#" + id);
 
   if (target) {
-    target.classList.remove(
-      "hidden"
-    );
+    target.classList.remove("hidden");
   }
 }
 
 
-/* =========================================================
-   الاتصال بالـ API
-========================================================= */
+/* =========================================
+   الاتصال بالخادم
+========================================= */
 
-async function api(
-  url,
-  options = {}
-) {
+async function api(url, options = {}) {
+
   options.headers = {
     ...(options.headers || {}),
-    "Content-Type":
-      "application/json"
+    "Content-Type": "application/json"
   };
 
   if (token) {
@@ -76,10 +62,7 @@ async function api(
   }
 
   const response =
-    await fetch(
-      url,
-      options
-    );
+    await fetch(url, options);
 
   const data =
     await response
@@ -89,7 +72,7 @@ async function api(
   if (!response.ok) {
     throw new Error(
       data.error ||
-        "حدث خطأ أثناء تنفيذ العملية."
+      "حدث خطأ أثناء تنفيذ العملية."
     );
   }
 
@@ -97,50 +80,39 @@ async function api(
 }
 
 
-/* =========================================================
+/* =========================================
    حماية النصوص
-========================================================= */
+========================================= */
 
 function esc(value) {
-  return String(
-    value ?? ""
-  ).replace(
-    /[&<>"']/g,
-    (char) => ({
-      "&":
-        "&amp;",
-      "<":
-        "&lt;",
-      ">":
-        "&gt;",
-      '"':
-        "&quot;",
-      "'":
-        "&#39;"
-    }[char])
-  );
+
+  return String(value ?? "")
+    .replace(
+      /[&<>"']/g,
+      (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char])
+    );
 }
 
 
-/* =========================================================
+/* =========================================
    تنسيق التاريخ
-========================================================= */
+========================================= */
 
-function formatDate(
-  value
-) {
+function formatDate(value) {
+
   if (!value) {
     return "لم يتم التحديث بعد";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "لم يتم التحديث بعد";
   }
 
@@ -157,14 +129,14 @@ function formatDate(
 }
 
 
-/* =========================================================
+/* =========================================
    اسم حالة التوفر
-========================================================= */
+========================================= */
 
-function availabilityLabel(
-  value
-) {
+function availabilityLabel(value) {
+
   switch (value) {
+
     case "available":
       return "متوفر";
 
@@ -177,52 +149,74 @@ function availabilityLabel(
 }
 
 
-/* =========================================================
-   تحميل بيانات لوحة الصيدلية
-========================================================= */
+/* =========================================
+   CSS class للحالة
+========================================= */
+
+function availabilityClass(value) {
+
+  switch (value) {
+
+    case "available":
+      return "status-available";
+
+    case "limited":
+      return "status-limited";
+
+    default:
+      return "status-unavailable";
+  }
+}
+
+
+/* =========================================
+   تحميل لوحة الصيدلية
+========================================= */
 
 async function loadDashboard() {
+
   try {
 
     const pharmacy =
-      await api(
-        "/api/pharmacy/me"
-      );
+      await api("/api/pharmacy/me");
 
-    $("#pharmacyName")
-      .textContent =
-      pharmacy.name ||
-      "الصيدلية";
+    if ($("#pharmacyName")) {
+      $("#pharmacyName").textContent =
+        pharmacy.name || "الصيدلية";
+    }
 
 
     inventoryRows =
-      await api(
-        "/api/pharmacy/inventory"
-      );
+      await api("/api/pharmacy/inventory");
 
 
     updateStats(
       inventoryRows
     );
 
+
     renderInventory(
       inventoryRows
     );
 
+
+    updateSummary();
+
+
   } catch (error) {
 
+    console.error(error);
+
     /*
-      إذا انتهت الجلسة
-      نعيد المستخدم للدخول.
+      إذا كانت الجلسة غير صالحة
+      نعيد المستخدم لصفحة الدخول.
     */
 
     if (
-      error.message.includes(
-        "جلسة"
-      ) ||
-      error.message.includes(
-        "تسجيل الدخول"
-      )
+      error.message.includes("token") ||
+      error.message.includes("جلسة") ||
+      error.message.includes("غير مصرح") ||
+      error.message.includes("الدخول")
     ) {
 
       localStorage.removeItem(
@@ -231,9 +225,7 @@ async function loadDashboard() {
 
       token = null;
 
-      show(
-        "loginView"
-      );
+      show("loginView");
 
       msg(
         "#loginMsg",
@@ -243,14 +235,23 @@ async function loadDashboard() {
       return;
     }
 
+
     const list =
       $("#inventoryList");
 
     if (list) {
+
       list.innerHTML = `
         <div class="inventory-error">
-          <strong>تعذر تحميل المخزون</strong>
-          <p>${esc(error.message)}</p>
+
+          <strong>
+            تعذر تحميل المخزون
+          </strong>
+
+          <p>
+            ${esc(error.message)}
+          </p>
+
           <button
             type="button"
             class="primary"
@@ -258,6 +259,7 @@ async function loadDashboard() {
           >
             إعادة المحاولة
           </button>
+
         </div>
       `;
     }
@@ -265,84 +267,98 @@ async function loadDashboard() {
 }
 
 
-/* =========================================================
+/* =========================================
    الإحصائيات
-========================================================= */
+========================================= */
 
-function updateStats(
-  rows
-) {
+function updateStats(rows) {
+
   const total =
     rows.length;
 
   const available =
     rows.filter(
-      (x) =>
-        x.availability ===
+      item =>
+        item.availability ===
         "available"
     ).length;
 
   const limited =
     rows.filter(
-      (x) =>
-        x.availability ===
+      item =>
+        item.availability ===
         "limited"
+    ).length;
+
+  const unavailable =
+    rows.filter(
+      item =>
+        item.availability ===
+        "unavailable"
     ).length;
 
 
   if ($("#totalCount")) {
-    $("#totalCount")
-      .textContent =
+    $("#totalCount").textContent =
       total;
   }
 
-  if (
-    $("#availableCount")
-  ) {
-    $("#availableCount")
-      .textContent =
+  if ($("#availableCount")) {
+    $("#availableCount").textContent =
       available;
   }
 
-  if (
-    $("#limitedCount")
-  ) {
-    $("#limitedCount")
-      .textContent =
+  if ($("#limitedCount")) {
+    $("#limitedCount").textContent =
       limited;
+  }
+
+  if ($("#unavailableCount")) {
+    $("#unavailableCount").textContent =
+      unavailable;
   }
 }
 
 
-/* =========================================================
+/* =========================================
    عرض المخزون
-========================================================= */
+========================================= */
 
-function renderInventory(
-  rows
-) {
+function renderInventory(rows) {
+
   const container =
     $("#inventoryList");
+
+  const empty =
+    $("#inventoryEmpty");
+
+  const noResults =
+    $("#inventoryNoResults");
+
 
   if (!container) {
     return;
   }
 
+
+  if (empty) {
+    empty.classList.add("hidden");
+  }
+
+  if (noResults) {
+    noResults.classList.add("hidden");
+  }
+
+
   if (!rows.length) {
 
-    container.innerHTML = `
-      <div class="empty-inventory">
-        <div class="empty-icon">💊</div>
+    container.innerHTML = "";
 
-        <h3>
-          لا توجد أدوية مسجلة
-        </h3>
+    if (empty) {
+      empty.classList.remove("hidden");
+    }
 
-        <p>
-          لم تتم إضافة أدوية إلى النظام بعد.
-        </p>
-      </div>
-    `;
+    updateSummary();
 
     return;
   }
@@ -350,333 +366,322 @@ function renderInventory(
 
   container.innerHTML =
     rows
-      .map(
-        (item) => {
+      .map(item => {
 
-          const medicine =
-            item.medicines ||
-            {};
-
-          const availability =
-            item.availability ||
-            "unavailable";
+        const medicine =
+          item.medicines || {};
 
 
-          const statusClass =
-            availability ===
-            "available"
-              ? "status-available"
-              : availability ===
-                "limited"
-              ? "status-limited"
-              : "status-unavailable";
+        const medicineId =
+          item.medicine_id ||
+          medicine.id;
 
 
-          return `
-            <div
-              class="inventory-card"
-              data-medicine-name="${esc(
-                medicine.name
-              )}"
-              data-generic-name="${esc(
-                medicine.generic_name || ""
-              )}"
-              data-availability="${esc(
-                availability
-              )}"
-            >
+        const availability =
+          item.availability ||
+          "unavailable";
 
-              <div class="inventory-info">
 
-                <div class="medicine-title">
-                  ${esc(
-                    medicine.name ||
-                      "دواء"
-                  )}
-                </div>
+        const quantity =
+          Number(
+            item.quantity || 0
+          );
 
-                <div class="medicine-details">
 
-                  ${
-                    medicine.generic_name
-                      ? `
-                        <span>
-                          ${esc(
-                            medicine.generic_name
-                          )}
-                        </span>
-                      `
-                      : ""
-                  }
+        return `
 
-                  ${
-                    medicine.strength
-                      ? `
-                        <span>
-                          ${esc(
-                            medicine.strength
-                          )}
-                        </span>
-                      `
-                      : ""
-                  }
+          <div
+            class="inventory-card"
+            data-medicine-name="${esc(
+              medicine.name || ""
+            )}"
+            data-generic-name="${esc(
+              medicine.generic_name || ""
+            )}"
+            data-strength="${esc(
+              medicine.strength || ""
+            )}"
+            data-form="${esc(
+              medicine.form || ""
+            )}"
+            data-availability="${esc(
+              availability
+            )}"
+          >
 
-                  ${
-                    medicine.form
-                      ? `
-                        <span>
-                          ${esc(
-                            medicine.form
-                          )}
-                        </span>
-                      `
-                      : ""
-                  }
+            <div class="inventory-info">
 
-                </div>
+              <div class="medicine-title">
+                ${esc(
+                  medicine.name ||
+                  "دواء"
+                )}
+              </div>
 
-                <div
-                  class="current-status ${statusClass}"
-                >
-                  ${availabilityLabel(
-                    availability
-                  )}
-                </div>
 
-                <div class="updated-time">
-                  آخر تحديث:
-                  ${formatDate(
-                    item.updated_at
-                  )}
-                </div>
+              <div class="medicine-details">
+
+                ${
+                  medicine.generic_name
+                    ? `
+                      <span>
+                        ${esc(
+                          medicine.generic_name
+                        )}
+                      </span>
+                    `
+                    : ""
+                }
+
+                ${
+                  medicine.strength
+                    ? `
+                      <span>
+                        ${esc(
+                          medicine.strength
+                        )}
+                      </span>
+                    `
+                    : ""
+                }
+
+                ${
+                  medicine.form
+                    ? `
+                      <span>
+                        ${esc(
+                          medicine.form
+                        )}
+                      </span>
+                    `
+                    : ""
+                }
 
               </div>
 
 
-              <div class="inventory-controls">
-
-                <label>
-                  <span>
-                    الكمية
-                  </span>
-
-                  <input
-                    class="inventory-qty"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value="${Number(
-                      item.quantity || 0
-                    )}"
-                    id="q_${esc(
-                      medicine.id
-                    )}"
-                  >
-                </label>
+              <div
+                class="current-status ${availabilityClass(
+                  availability
+                )}"
+              >
+                ${availabilityLabel(
+                  availability
+                )}
+              </div>
 
 
-                <label>
-                  <span>
-                    حالة التوفر
-                  </span>
+              <div class="updated-time">
 
-                  <select
-                    class="inventory-status"
-                    id="s_${esc(
-                      medicine.id
-                    )}"
-                  >
-
-                    <option
-                      value="available"
-                      ${
-                        availability ===
-                        "available"
-                          ? "selected"
-                          : ""
-                      }
-                    >
-                      متوفر
-                    </option>
-
-                    <option
-                      value="limited"
-                      ${
-                        availability ===
-                        "limited"
-                          ? "selected"
-                          : ""
-                      }
-                    >
-                      كمية محدودة
-                    </option>
-
-                    <option
-                      value="unavailable"
-                      ${
-                        availability ===
-                        "unavailable"
-                          ? "selected"
-                          : ""
-                      }
-                    >
-                      غير متوفر
-                    </option>
-
-                  </select>
-                </label>
-
-
-                <button
-                  type="button"
-                  class="save inventory-save"
-                  onclick="saveItem('${esc(
-                    medicine.id
-                  )}', this)"
-                >
-                  حفظ
-                </button>
+                آخر تحديث:
+                ${formatDate(
+                  item.updated_at
+                )}
 
               </div>
 
             </div>
-          `;
-        }
-      )
+
+
+            <div class="inventory-controls">
+
+              <label>
+
+                <span>
+                  الكمية
+                </span>
+
+                <input
+                  class="inventory-qty"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value="${quantity}"
+                  id="q_${esc(
+                    medicineId
+                  )}"
+                >
+
+              </label>
+
+
+              <label>
+
+                <span>
+                  حالة التوفر
+                </span>
+
+                <select
+                  class="inventory-status"
+                  id="s_${esc(
+                    medicineId
+                  )}"
+                >
+
+                  <option
+                    value="available"
+                    ${
+                      availability ===
+                      "available"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    🟢 متوفر
+                  </option>
+
+                  <option
+                    value="limited"
+                    ${
+                      availability ===
+                      "limited"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    🟡 كمية محدودة
+                  </option>
+
+                  <option
+                    value="unavailable"
+                    ${
+                      availability ===
+                      "unavailable"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    🔴 غير متوفر
+                  </option>
+
+                </select>
+
+              </label>
+
+
+              <button
+                type="button"
+                class="save inventory-save"
+                onclick="saveItem(
+                  '${esc(medicineId)}',
+                  this
+                )"
+              >
+                حفظ
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+      })
       .join("");
+
+
+  updateSummary();
 }
 
 
-/* =========================================================
-   حفظ دواء
-========================================================= */
+/* =========================================
+   تحديث ملخص النتائج
+========================================= */
 
-window.saveItem =
-  async function (
-    medicineId,
-    button
-  ) {
+function updateSummary() {
 
-    const quantityInput =
-      document.getElementById(
-        "q_" + medicineId
-      );
+  const summary =
+    $("#inventorySummary");
 
-    const statusInput =
-      document.getElementById(
-        "s_" + medicineId
-      );
+  if (!summary) {
+    return;
+  }
 
 
-    if (
-      !quantityInput ||
-      !statusInput
-    ) {
-      return;
-    }
+  const searchInput =
+    $("#inventorySearch");
+
+  const filterSelect =
+    $("#inventoryFilter");
 
 
-    const quantity =
-      Math.max(
-        0,
-        Number(
-          quantityInput.value || 0
+  const search =
+    searchInput
+      ? String(
+          searchInput.value || ""
         )
-      );
-
-    const availability =
-      statusInput.value;
-
-
-    const originalText =
-      button
-        ? button.textContent
-        : "حفظ";
+          .trim()
+          .toLowerCase()
+      : "";
 
 
-    try {
-
-      if (button) {
-        button.disabled =
-          true;
-
-        button.textContent =
-          "جاري الحفظ...";
-      }
+  const filter =
+    filterSelect
+      ? filterSelect.value
+      : "all";
 
 
-      await api(
-        "/api/pharmacy/inventory/" +
-          encodeURIComponent(
-            medicineId
-          ),
-        {
-          method: "PUT",
+  let visible =
+    inventoryRows.filter(
+      item => {
 
-          body:
-            JSON.stringify({
-              quantity,
-              availability
-            })
-        }
-      );
+        const medicine =
+          item.medicines || {};
 
 
-      if (button) {
-        button.textContent =
-          "✓ تم الحفظ";
+        const name =
+          String(
+            medicine.name || ""
+          ).toLowerCase();
 
-        button.classList.add(
-          "saved"
+
+        const generic =
+          String(
+            medicine.generic_name || ""
+          ).toLowerCase();
+
+
+        const strength =
+          String(
+            medicine.strength || ""
+          ).toLowerCase();
+
+
+        const form =
+          String(
+            medicine.form || ""
+          ).toLowerCase();
+
+
+        const matchesSearch =
+          !search ||
+          name.includes(search) ||
+          generic.includes(search) ||
+          strength.includes(search) ||
+          form.includes(search);
+
+
+        const matchesFilter =
+          filter === "all" ||
+          item.availability ===
+            filter;
+
+
+        return (
+          matchesSearch &&
+          matchesFilter
         );
       }
+    ).length;
 
 
-      /*
-        نعيد تحميل البيانات
-        حتى يظهر وقت آخر تحديث
-        والحالة الجديدة.
-      */
-
-      await loadDashboard();
+  summary.textContent =
+    `عرض ${visible} من ${inventoryRows.length} دواء`;
+}
 
 
-      setTimeout(
-        () => {
-
-          if (button) {
-            button.classList.remove(
-              "saved"
-            );
-
-            button.textContent =
-              originalText;
-          }
-
-        },
-        1800
-      );
-
-    } catch (error) {
-
-      if (button) {
-        button.disabled =
-          false;
-
-        button.textContent =
-          originalText;
-      }
-
-      alert(
-        error.message
-      );
-    }
-  };
-
-
-/* =========================================================
-   البحث في المخزون
-========================================================= */
+/* =========================================
+   البحث والفلترة
+========================================= */
 
 function filterInventory() {
 
@@ -713,69 +718,89 @@ function filterInventory() {
     0;
 
 
-  cards.forEach(
-    (card) => {
+  cards.forEach(card => {
 
-      const name =
-        (
-          card.dataset
-            .medicineName ||
-          ""
-        ).toLowerCase();
-
-      const generic =
-        (
-          card.dataset
-            .genericName ||
-          ""
-        ).toLowerCase();
-
-      const availability =
+    const name =
+      (
         card.dataset
-          .availability ||
-        "";
+          .medicineName ||
+        ""
+      ).toLowerCase();
 
 
-      const matchesSearch =
-        !search ||
-        name.includes(search) ||
-        generic.includes(search);
+    const generic =
+      (
+        card.dataset
+          .genericName ||
+        ""
+      ).toLowerCase();
 
 
-      const matchesFilter =
-        filter === "all" ||
-        availability ===
-          filter;
+    const strength =
+      (
+        card.dataset
+          .strength ||
+        ""
+      ).toLowerCase();
 
 
-      const showCard =
-        matchesSearch &&
-        matchesFilter;
+    const form =
+      (
+        card.dataset
+          .form ||
+        ""
+      ).toLowerCase();
 
 
-      card.style.display =
-        showCard
-          ? ""
-          : "grid";
+    const availability =
+      card.dataset
+        .availability ||
+      "";
 
 
-      if (
-        !showCard
-      ) {
-        card.style.display =
-          "none";
-      }
+    const matchesSearch =
+      !search ||
+      name.includes(search) ||
+      generic.includes(search) ||
+      strength.includes(search) ||
+      form.includes(search);
 
 
-      if (showCard) {
-        visible++;
-      }
+    const matchesFilter =
+      filter === "all" ||
+      availability ===
+        filter;
+
+
+    const showCard =
+      matchesSearch &&
+      matchesFilter;
+
+
+    card.style.display =
+      showCard
+        ? ""
+        : "none";
+
+
+    if (showCard) {
+      visible++;
     }
-  );
+
+  });
 
 
   const noResults =
     $("#inventoryNoResults");
+
+
+  const empty =
+    $("#inventoryEmpty");
+
+
+  if (empty) {
+    empty.classList.add("hidden");
+  }
 
 
   if (noResults) {
@@ -785,158 +810,208 @@ function filterInventory() {
       visible !== 0
     );
   }
+
+
+  updateSummary();
 }
 
 
-/* =========================================================
-   إنشاء أدوات البحث
-========================================================= */
+/* =========================================
+   حفظ دواء
+========================================= */
 
-function setupInventoryTools() {
-
-  const panel =
-    $("#inventoryList");
-
-  if (!panel) {
-    return;
-  }
-
-
-  /*
-    لا نكرر الأدوات إذا كانت
-    موجودة بالفعل.
-  */
-
-  if (
-    $("#inventoryTools")
+window.saveItem =
+  async function(
+    medicineId,
+    button
   ) {
-    return;
-  }
+
+    const quantityInput =
+      document.getElementById(
+        "q_" + medicineId
+      );
 
 
-  const tools =
-    document.createElement(
-      "div"
-    );
-
-  tools.id =
-    "inventoryTools";
-
-  tools.className =
-    "inventory-tools";
+    const statusInput =
+      document.getElementById(
+        "s_" + medicineId
+      );
 
 
-  tools.innerHTML = `
-    <div class="inventory-search">
-
-      <span class="search-icon">
-        🔎
-      </span>
-
-      <input
-        id="inventorySearch"
-        type="search"
-        placeholder="ابحث باسم الدواء أو الاسم العلمي..."
-        autocomplete="off"
-      >
-
-    </div>
+    if (
+      !quantityInput ||
+      !statusInput
+    ) {
+      return;
+    }
 
 
-    <select
-      id="inventoryFilter"
-      class="inventory-filter"
-    >
-
-      <option value="all">
-        كل الأدوية
-      </option>
-
-      <option value="available">
-        المتوفرة
-      </option>
-
-      <option value="limited">
-        الكمية المحدودة
-      </option>
-
-      <option value="unavailable">
-        غير المتوفرة
-      </option>
-
-    </select>
-  `;
+    let quantity =
+      Number(
+        quantityInput.value
+      );
 
 
-  panel.parentNode.insertBefore(
-    tools,
-    panel
-  );
+    if (
+      !Number.isFinite(quantity) ||
+      quantity < 0
+    ) {
+      quantity = 0;
+    }
 
 
-  const noResults =
-    document.createElement(
-      "div"
-    );
-
-  noResults.id =
-    "inventoryNoResults";
-
-  noResults.className =
-    "inventory-no-results hidden";
+    quantity =
+      Math.floor(quantity);
 
 
-  noResults.innerHTML = `
-    <div>
-      🔎
-    </div>
-
-    <strong>
-      لا توجد نتائج
-    </strong>
-
-    <p>
-      جرّب اسمًا آخر أو غيّر فلتر الحالة.
-    </p>
-  `;
+    const availability =
+      statusInput.value;
 
 
-  panel.parentNode.insertBefore(
-    noResults,
-    panel.nextSibling
-  );
+    const originalText =
+      button
+        ? button.textContent
+        : "حفظ";
 
 
-  $("#inventorySearch")
-    .addEventListener(
-      "input",
-      filterInventory
-    );
+    try {
+
+      if (button) {
+
+        button.disabled =
+          true;
+
+        button.textContent =
+          "جاري الحفظ...";
+      }
 
 
-  $("#inventoryFilter")
-    .addEventListener(
-      "change",
-      filterInventory
-    );
-}
+      await api(
+        "/api/pharmacy/inventory/" +
+          encodeURIComponent(
+            medicineId
+          ),
+        {
+          method: "PUT",
+
+          body:
+            JSON.stringify({
+              quantity,
+              availability
+            })
+        }
+      );
 
 
-/* =========================================================
+      /*
+        تحديث البيانات محليًا
+        قبل إعادة تحميل القائمة.
+      */
+
+      const item =
+        inventoryRows.find(
+          row =>
+            String(
+              row.medicine_id
+            ) ===
+            String(medicineId)
+        );
+
+
+      if (item) {
+
+        item.quantity =
+          quantity;
+
+        item.availability =
+          availability;
+
+        item.updated_at =
+          new Date().toISOString();
+      }
+
+
+      if (button) {
+
+        button.textContent =
+          "✓ تم الحفظ";
+
+        button.classList.add(
+          "saved"
+        );
+      }
+
+
+      /*
+        نعيد تحميل البيانات من الخادم
+        للتأكد من أن كل شيء محفوظ.
+      */
+
+      await loadDashboard();
+
+
+      setTimeout(() => {
+
+        if (button) {
+
+          button.classList.remove(
+            "saved"
+          );
+
+          button.textContent =
+            originalText;
+
+          button.disabled =
+            false;
+        }
+
+      }, 1600);
+
+
+    } catch (error) {
+
+      console.error(error);
+
+
+      if (button) {
+
+        button.disabled =
+          false;
+
+        button.textContent =
+          originalText;
+      }
+
+
+      alert(
+        error.message
+      );
+    }
+  };
+
+
+/* =========================================
    تسجيل الدخول
-========================================================= */
+========================================= */
 
-$("#loginForm")
-  .addEventListener(
+const loginForm =
+  $("#loginForm");
+
+
+if (loginForm) {
+
+  loginForm.addEventListener(
     "submit",
-    async (event) => {
+    async event => {
 
       event.preventDefault();
 
+
       msg(
         "#loginMsg",
-        "جاري الدخول..."
+        "جاري تسجيل الدخول..."
       );
+
 
       try {
 
@@ -948,13 +1023,16 @@ $("#loginForm")
 
               body:
                 JSON.stringify({
+
                   email:
                     $("#email")
-                      .value,
+                      .value
+                      .trim(),
 
                   password:
                     $("#password")
                       .value
+
                 })
             }
           );
@@ -975,8 +1053,6 @@ $("#loginForm")
         );
 
 
-        setupInventoryTools();
-
         await loadDashboard();
 
 
@@ -989,18 +1065,25 @@ $("#loginForm")
       }
     }
   );
+}
 
 
-/* =========================================================
+/* =========================================
    تسجيل صيدلية جديدة
-========================================================= */
+========================================= */
 
-$("#registerForm")
-  .addEventListener(
+const registerForm =
+  $("#registerForm");
+
+
+if (registerForm) {
+
+  registerForm.addEventListener(
     "submit",
-    async (event) => {
+    async event => {
 
       event.preventDefault();
+
 
       msg(
         "#registerMsg",
@@ -1021,15 +1104,18 @@ $("#registerForm")
 
                   name:
                     $("#rName")
-                      .value,
+                      .value
+                      .trim(),
 
                   phone:
                     $("#rPhone")
-                      .value,
+                      .value
+                      .trim(),
 
                   email:
                     $("#rEmail")
-                      .value,
+                      .value
+                      .trim(),
 
                   password:
                     $("#rPassword")
@@ -1037,7 +1123,8 @@ $("#registerForm")
 
                   address:
                     $("#rAddress")
-                      .value,
+                      .value
+                      .trim(),
 
                   delivery:
                     $("#rDelivery")
@@ -1050,7 +1137,8 @@ $("#registerForm")
 
         msg(
           "#registerMsg",
-          data.message
+          data.message ||
+          "تم إرسال طلب التسجيل بنجاح."
         );
 
 
@@ -1066,125 +1154,176 @@ $("#registerForm")
       }
     }
   );
+}
 
 
-/* =========================================================
+/* =========================================
    الانتقال إلى التسجيل
-========================================================= */
+========================================= */
 
-$("#showRegister")
-  .onclick = () => {
-
-    show(
-      "registerView"
-    );
-
-    msg(
-      "#registerMsg",
-      ""
-    );
-  };
+const showRegister =
+  $("#showRegister");
 
 
-/* =========================================================
+if (showRegister) {
+
+  showRegister.onclick =
+    () => {
+
+      show(
+        "registerView"
+      );
+
+      msg(
+        "#registerMsg",
+        ""
+      );
+    };
+}
+
+
+/* =========================================
    العودة للدخول
-========================================================= */
+========================================= */
 
-$("#showLogin")
-  .onclick = () => {
-
-    show(
-      "loginView"
-    );
-
-    msg(
-      "#loginMsg",
-      ""
-    );
-  };
+const showLogin =
+  $("#showLogin");
 
 
-/* =========================================================
-   تحديث المخزون
-========================================================= */
+if (showLogin) {
 
-$("#refreshBtn")
-  .onclick = async () => {
+  showLogin.onclick =
+    () => {
 
-    const button =
-      $("#refreshBtn");
+      show(
+        "loginView"
+      );
 
-    const original =
-      button
-        ? button.textContent
-        : "تحديث";
+      msg(
+        "#loginMsg",
+        ""
+      );
+    };
+}
 
 
-    try {
+/* =========================================
+   زر التحديث
+========================================= */
 
-      if (button) {
-        button.disabled =
+const refreshBtn =
+  $("#refreshBtn");
+
+
+if (refreshBtn) {
+
+  refreshBtn.onclick =
+    async () => {
+
+      const original =
+        refreshBtn.textContent;
+
+
+      try {
+
+        refreshBtn.disabled =
           true;
 
-        button.textContent =
-          "جاري التحديث...";
-      }
+        refreshBtn.textContent =
+          "⏳ جاري التحديث...";
 
 
-      await loadDashboard();
+        await loadDashboard();
 
 
-    } finally {
+      } finally {
 
-      if (button) {
-
-        button.disabled =
+        refreshBtn.disabled =
           false;
 
-        button.textContent =
+        refreshBtn.textContent =
           original;
       }
-    }
-  };
+    };
+}
 
 
-/* =========================================================
+/* =========================================
    تسجيل الخروج
-========================================================= */
+========================================= */
 
-$("#logoutBtn")
-  .onclick = () => {
-
-    localStorage.removeItem(
-      "dawai_pharmacy_token"
-    );
-
-    token = null;
-
-    inventoryRows = [];
-
-    show(
-      "loginView"
-    );
-
-    msg(
-      "#loginMsg",
-      ""
-    );
-  };
+const logoutBtn =
+  $("#logoutBtn");
 
 
-/* =========================================================
+if (logoutBtn) {
+
+  logoutBtn.onclick =
+    () => {
+
+      localStorage.removeItem(
+        "dawai_pharmacy_token"
+      );
+
+      token = null;
+
+      inventoryRows = [];
+
+      show(
+        "loginView"
+      );
+
+      msg(
+        "#loginMsg",
+        ""
+      );
+    };
+}
+
+
+/* =========================================
+   البحث
+========================================= */
+
+const inventorySearch =
+  $("#inventorySearch");
+
+
+if (inventorySearch) {
+
+  inventorySearch.addEventListener(
+    "input",
+    filterInventory
+  );
+}
+
+
+/* =========================================
+   الفلترة
+========================================= */
+
+const inventoryFilter =
+  $("#inventoryFilter");
+
+
+if (inventoryFilter) {
+
+  inventoryFilter.addEventListener(
+    "change",
+    filterInventory
+  );
+}
+
+
+/* =========================================
    بدء التطبيق
-========================================================= */
+========================================= */
 
 if (token) {
 
   show(
     "dashboardView"
   );
-
-  setupInventoryTools();
 
   loadDashboard();
 
