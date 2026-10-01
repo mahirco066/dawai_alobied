@@ -27,17 +27,22 @@ function api(url, options = {}){
   };
 
   if(token){
-    options.headers.Authorization = "Bearer " + token;
+    options.headers.Authorization =
+      "Bearer " + token;
   }
 
   return fetch(url, options).then(async r => {
-    const data = await r.json().catch(() => ({}));
+
+    const data =
+      await r.json().catch(() => ({}));
 
     if(!r.ok){
+
       throw new Error(
         data.error ||
         "حدث خطأ أثناء تنفيذ العملية."
       );
+
     }
 
     return data;
@@ -45,6 +50,7 @@ function api(url, options = {}){
 }
 
 function statusPill(s){
+
   if(s === "approved"){
     return '<span class="pill approved">معتمدة</span>';
   }
@@ -57,6 +63,7 @@ function statusPill(s){
 }
 
 function inventoryPill(s){
+
   if(s === "available"){
     return '<span class="pill approved">متوفر</span>';
   }
@@ -69,12 +76,14 @@ function inventoryPill(s){
 }
 
 function accountPill(active){
+
   return active
     ? '<span class="pill approved">نشط</span>'
     : '<span class="pill suspended">معطل</span>';
 }
 
 function dateText(value){
+
   if(!value) return "-";
 
   const d = new Date(value);
@@ -91,6 +100,7 @@ function dateText(value){
 }
 
 function show(id){
+
   $$(".view").forEach(x =>
     x.classList.add("hidden")
   );
@@ -127,6 +137,7 @@ function show(id){
 }
 
 function openModal(html){
+
   const body = $("#modalBody");
   const modal = $("#modal");
 
@@ -140,13 +151,15 @@ function openModal(html){
 }
 
 function closeModal(){
+
   $("#modal")?.classList.remove("show");
+
 }
 
 async function loadStats(){
-  const d = await api(
-    "/api/admin/stats"
-  );
+
+  const d =
+    await api("/api/admin/stats");
 
   if($("#nPh")){
     $("#nPh").textContent =
@@ -185,13 +198,15 @@ async function loadStats(){
 }
 
 async function loadPharmacies(){
+
   const status =
     $("#filter")?.value || "";
 
-  pharmacies = await api(
-    "/api/admin/pharmacies?status=" +
-    encodeURIComponent(status)
-  );
+  pharmacies =
+    await api(
+      "/api/admin/pharmacies?status=" +
+      encodeURIComponent(status)
+    );
 
   renderPharmacies();
   renderAccounts();
@@ -199,12 +214,14 @@ async function loadPharmacies(){
 }
 
 function filteredPharmacies(){
+
   const q =
     ($("#pharmacySearch")?.value || "")
       .trim()
       .toLowerCase();
 
   return pharmacies.filter(p => {
+
     if(!q) return true;
 
     const email =
@@ -224,12 +241,15 @@ function filteredPharmacies(){
 }
 
 function renderPharmacies(){
+
   const list =
     filteredPharmacies();
 
   if($("#pharmacySummary")){
+
     $("#pharmacySummary").textContent =
       `عرض ${list.length} من ${pharmacies.length} صيدلية`;
+
   }
 
   if(!$("#pharmacyTable")){
@@ -240,6 +260,7 @@ function renderPharmacies(){
     list.length
       ? `
 <table class="data">
+
 <thead>
 <tr>
 <th>الصيدلية</th>
@@ -262,9 +283,15 @@ ${list.map(p => {
 <tr>
 
 <td>
+
 <b>${esc(p.name)}</b>
+
 <br>
-<small>${esc(email)}</small>
+
+<small>
+${esc(email)}
+</small>
+
 </td>
 
 <td>
@@ -276,11 +303,13 @@ ${esc(p.address || "-")}
 </td>
 
 <td>
+
 ${
   p.delivery
     ? '<span class="pill blue">متاح</span>'
     : '<span class="pill">غير متاح</span>'
 }
+
 </td>
 
 <td>
@@ -333,6 +362,7 @@ ${
 }).join("")}
 
 </tbody>
+
 </table>
 `
       : `
@@ -378,6 +408,10 @@ window.setPharmacyStatus =
     }
   };
 
+/* ==================================================
+   الإدارة الكاملة للصيدلية
+================================================== */
+
 window.viewPharmacy = id => {
 
   const p =
@@ -390,50 +424,169 @@ window.viewPharmacy = id => {
   const a =
     p.pharmacy_accounts?.[0] || {};
 
+  const status =
+    p.status || "pending";
+
   openModal(`
 
-<h3>تفاصيل الصيدلية</h3>
+<h3>إدارة الصيدلية</h3>
 
 <div class="info-box">
 
-<b>${esc(p.name)}</b>
+<strong>
+${esc(p.name)}
+</strong>
+
 <br>
 
-الهاتف:
-${esc(p.phone || "-")}
-<br>
-
-البريد:
-${esc(a.email || "-")}
-<br>
-
-العنوان:
-${esc(p.address || "-")}
-<br>
-
-ساعات العمل:
-${esc(p.opening_hours || "-")}
-<br>
-
-التوصيل:
-${p.delivery ? "متاح" : "غير متاح"}
-<br>
-
-الحالة:
+<span>
+حساب الدخول:
 ${
-  p.status === "approved"
-    ? "معتمدة"
-    : p.status === "suspended"
-      ? "موقوفة"
-      : "قيد المراجعة"
+  a.active === false
+    ? "معطل"
+    : "نشط"
 }
+</span>
 
 </div>
+
+<div class="form-grid">
+
+<div>
+
+<label>
+اسم الصيدلية
+</label>
+
+<input
+  id="pharmacyName"
+  type="text"
+  value="${esc(p.name || "")}"
+  placeholder="اسم الصيدلية"
+>
+
+</div>
+
+<div>
+
+<label>
+رقم الهاتف
+</label>
+
+<input
+  id="pharmacyPhone"
+  type="text"
+  value="${esc(p.phone || "")}"
+  placeholder="رقم الهاتف"
+>
+
+</div>
+
+<div>
+
+<label>
+البريد الإلكتروني
+</label>
+
+<input
+  id="pharmacyEmail"
+  type="email"
+  value="${esc(a.email || "")}"
+  placeholder="البريد الإلكتروني"
+>
+
+</div>
+
+<div>
+
+<label>
+ساعات العمل
+</label>
+
+<input
+  id="pharmacyHours"
+  type="text"
+  value="${esc(p.opening_hours || "")}"
+  placeholder="مثال: 8 صباحًا - 10 مساءً"
+>
+
+</div>
+
+</div>
+
+<div>
+
+<label>
+عنوان الصيدلية
+</label>
+
+<textarea
+  id="pharmacyAddress"
+  rows="3"
+  placeholder="عنوان الصيدلية"
+>${esc(p.address || "")}</textarea>
+
+</div>
+
+<label class="check-row">
+
+<input
+  id="pharmacyDelivery"
+  type="checkbox"
+  ${p.delivery ? "checked" : ""}
+>
+
+<span>
+خدمة التوصيل متاحة
+</span>
+
+</label>
+
+<div>
+
+<label>
+حالة الصيدلية
+</label>
+
+<select id="pharmacyStatus">
+
+<option
+  value="pending"
+  ${status === "pending" ? "selected" : ""}
+>
+قيد المراجعة
+</option>
+
+<option
+  value="approved"
+  ${status === "approved" ? "selected" : ""}
+>
+معتمدة
+</option>
+
+<option
+  value="suspended"
+  ${status === "suspended" ? "selected" : ""}
+>
+موقوفة
+</option>
+
+</select>
+
+</div>
+
+<button
+  class="primary wide"
+  onclick="savePharmacy('${p.id}')">
+  💾 حفظ جميع التعديلات
+</button>
+
+<hr>
 
 <div class="reset-password-box">
 
 <div class="reset-password-title">
-🔑 إعادة تعيين كلمة المرور
+🔑 تغيير كلمة المرور
 </div>
 
 <p>
@@ -456,27 +609,20 @@ ${
 
 </div>
 
+<hr>
+
+<button
+  class="act stop wide"
+  onclick="deletePharmacy('${p.id}')">
+  🗑️ حذف الصيدلية نهائيًا
+</button>
+
 `);
 
 };
 
-window.resetPharmacyPassword =
+window.savePharmacy =
   async id => {
-
-    const input =
-      $("#resetPassword");
-
-    const password =
-      input?.value || "";
-
-    if(password.length < 8){
-
-      alert(
-        "كلمة المرور يجب أن تكون 8 أحرف على الأقل."
-      );
-
-      return;
-    }
 
     const p =
       pharmacies.find(
@@ -485,48 +631,51 @@ window.resetPharmacyPassword =
 
     if(!p) return;
 
-    if(
-      !confirm(
-        `هل تريد تعيين كلمة مرور جديدة لحساب ${p.name}؟`
-      )
-    ){
+    const name =
+      $("#pharmacyName")?.value
+        ?.trim() || "";
+
+    const phone =
+      $("#pharmacyPhone")?.value
+        ?.trim() || "";
+
+    const email =
+      $("#pharmacyEmail")?.value
+        ?.trim()
+        ?.toLowerCase() || "";
+
+    const address =
+      $("#pharmacyAddress")?.value
+        ?.trim() || "";
+
+    const opening_hours =
+      $("#pharmacyHours")?.value
+        ?.trim() || "";
+
+    const delivery =
+      $("#pharmacyDelivery")?.checked === true;
+
+    const status =
+      $("#pharmacyStatus")?.value ||
+      "pending";
+
+    if(!name){
+
+      alert(
+        "اسم الصيدلية مطلوب."
+      );
+
       return;
     }
 
-    try{
-
-      const d =
-        await api(
-          `/api/admin/pharmacies/${id}/password`,
-          {
-            method:"PATCH",
-            body:JSON.stringify({
-              password
-            })
-          }
-        );
+    if(!phone){
 
       alert(
-        `تم تحديث كلمة المرور بنجاح للصيدلية: ${p.name}\nالبريد: ${d.email}`
+        "رقم الهاتف مطلوب."
       );
 
-      closeModal();
-
-    }catch(e){
-
-      alert(e.message);
-
+      return;
     }
-  };window.updatePharmacyEmail =
-  async id => {
-
-    const input =
-      $("#pharmacyEmail");
-
-    const email =
-      input?.value
-        ?.trim()
-        ?.toLowerCase() || "";
 
     if(!email){
 
@@ -537,10 +686,10 @@ window.resetPharmacyPassword =
       return;
     }
 
-    const pattern =
+    const emailPattern =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if(!pattern.test(email)){
+    if(!emailPattern.test(email)){
 
       alert(
         "صيغة البريد الإلكتروني غير صحيحة."
@@ -548,6 +697,84 @@ window.resetPharmacyPassword =
 
       return;
     }
+
+    if(
+      !confirm(
+        `هل تريد حفظ تعديلات الصيدلية ${p.name}؟`
+      )
+    ){
+      return;
+    }
+
+    try{
+
+      await api(
+        `/api/admin/pharmacies/${id}`,
+        {
+          method:"PATCH",
+
+          body:JSON.stringify({
+            name,
+            phone,
+            address,
+            opening_hours,
+            delivery
+          })
+        }
+      );
+
+      const oldEmail =
+        String(
+          p.pharmacy_accounts?.[0]?.email || ""
+        )
+        .trim()
+        .toLowerCase();
+
+      if(email !== oldEmail){
+
+        await api(
+          `/api/admin/pharmacies/${id}/email`,
+          {
+            method:"PATCH",
+
+            body:JSON.stringify({
+              email
+            })
+          }
+        );
+      }
+
+      if(status !== p.status){
+
+        await api(
+          `/api/admin/pharmacies/${id}/status`,
+          {
+            method:"PATCH",
+
+            body:JSON.stringify({
+              status
+            })
+          }
+        );
+      }
+
+      alert(
+        "تم حفظ جميع تعديلات الصيدلية بنجاح."
+      );
+
+      closeModal();
+
+      await refreshAll();
+
+    }catch(e){
+
+      alert(e.message);
+
+    }
+  };
+
+window.deletePharmacy =
+  async id => {
 
     const p =
       pharmacies.find(
@@ -558,7 +785,15 @@ window.resetPharmacyPassword =
 
     if(
       !confirm(
-        `هل تريد تحديث البريد الإلكتروني لحساب ${p.name}؟`
+        `⚠️ هل أنت متأكد من حذف الصيدلية "${p.name}" نهائيًا؟\n\nسيتم حذف الصيدلية والحساب والمخزون المرتبط بها.`
+      )
+    ){
+      return;
+    }
+
+    if(
+      !confirm(
+        "تأكيد أخير: هل تريد الحذف النهائي؟"
       )
     ){
       return;
@@ -566,32 +801,29 @@ window.resetPharmacyPassword =
 
     try{
 
-      const d =
-        await api(
-          `/api/admin/pharmacies/${id}/email`,
-          {
-            method:"PATCH",
-            body:JSON.stringify({
-              email
-            })
-          }
-        );
+      await api(
+        `/api/admin/pharmacies/${id}`,
+        {
+          method:"DELETE"
+        }
+      );
 
       alert(
-        d.message ||
-        "تم تحديث البريد الإلكتروني بنجاح."
+        "تم حذف الصيدلية بنجاح."
       );
 
       closeModal();
 
-      await loadPharmacies();
+      await refreshAll();
 
     }catch(e){
 
       alert(e.message);
 
     }
-  };
+  };/* ==================================================
+   الأدوية
+================================================== */
 
 async function loadMedicines(){
 
@@ -610,43 +842,59 @@ function medicineForm(m = {}){
 <div class="form-grid">
 
 <div>
-<label>اسم الدواء</label>
+
+<label>
+اسم الدواء
+</label>
 
 <input
   id="medName"
   value="${esc(m.name || "")}"
   placeholder="اسم الدواء"
 >
+
 </div>
 
 <div>
-<label>الاسم العلمي</label>
+
+<label>
+الاسم العلمي
+</label>
 
 <input
   id="medGeneric"
   value="${esc(m.generic_name || "")}"
   placeholder="الاسم العلمي"
 >
+
 </div>
 
 <div>
-<label>التركيز</label>
+
+<label>
+التركيز
+</label>
 
 <input
   id="medStrength"
   value="${esc(m.strength || "")}"
   placeholder="مثال: 500 mg"
 >
+
 </div>
 
 <div>
-<label>الشكل الدوائي</label>
+
+<label>
+الشكل الدوائي
+</label>
 
 <input
   id="medForm"
   value="${esc(m.form || "")}"
   placeholder="أقراص / كبسولات / شراب"
 >
+
 </div>
 
 </div>
@@ -659,7 +907,9 @@ function medicineForm(m = {}){
   ${m.active !== false ? "checked" : ""}
 >
 
-<span>الدواء فعال في النظام</span>
+<span>
+الدواء فعال في النظام
+</span>
 
 </label>
 
@@ -705,6 +955,7 @@ function filteredMedicines(){
         (f === "inactive" && !m.active)
       )
     );
+
   });
 }
 
@@ -714,8 +965,10 @@ function renderMedicines(){
     filteredMedicines();
 
   if($("#medicineSummary")){
+
     $("#medicineSummary").textContent =
       `عرض ${list.length} من ${medicines.length} دواء`;
+
   }
 
   if(!$("#medicineTable")){
@@ -748,7 +1001,9 @@ ${list.map(m => `
 <tr>
 
 <td>
-<b>${esc(m.name)}</b>
+<b>
+${esc(m.name)}
+</b>
 </td>
 
 <td>
@@ -789,11 +1044,11 @@ ${
   }"
   onclick="toggleMedicine('${m.id}')">
 
-  ${
-    m.active
-      ? "تعطيل"
-      : "تفعيل"
-  }
+${
+  m.active
+    ? "تعطيل"
+    : "تفعيل"
+}
 
 </button>
 
@@ -815,22 +1070,29 @@ ${
 `;
 }
 
-window.editMedicine = id => {
+window.editMedicine =
+  id => {
 
-  const m =
-    medicines.find(
-      x => x.id === id
-    );
+    const m =
+      medicines.find(
+        x => x.id === id
+      );
 
-  if(!m) return;
+    if(!m) return;
 
-  window._editingMedicine = m;
+    window._editingMedicine = m;
 
-  openModal(`
-    <h3>تعديل الدواء</h3>
-    ${medicineForm(m)}
-  `);
-};
+    openModal(`
+
+<h3>
+تعديل الدواء
+</h3>
+
+${medicineForm(m)}
+
+`);
+
+  };
 
 window.saveMedicine =
   async () => {
@@ -882,6 +1144,7 @@ window.saveMedicine =
         url,
         {
           method,
+
           body:JSON.stringify({
             name,
             generic_name,
@@ -944,6 +1207,7 @@ window.toggleMedicine =
         `/api/admin/medicines/${id}`,
         {
           method:"PATCH",
+
           body:JSON.stringify({
             active:!m.active
           })
@@ -961,6 +1225,11 @@ window.toggleMedicine =
 
     }
   };
+
+
+/* ==================================================
+   المخزون
+================================================== */
 
 async function loadInventory(){
 
@@ -1004,6 +1273,7 @@ function filteredInventory(){
         x.availability === f
       )
     );
+
   });
 }
 
@@ -1013,8 +1283,10 @@ function renderInventory(){
     filteredInventory();
 
   if($("#inventorySummary")){
+
     $("#inventorySummary").textContent =
       `عرض ${list.length} من ${inventory.length} سجل مخزون`;
+
   }
 
   if(!$("#inventoryTable")){
@@ -1075,7 +1347,11 @@ ${esc(x.medicine?.strength || "")}
 </td>
 
 <td>
-<b>${Number(x.quantity || 0)}</b>
+
+<b>
+${Number(x.quantity || 0)}
+</b>
+
 </td>
 
 <td>
@@ -1101,6 +1377,11 @@ ${dateText(x.updated_at)}
 </div>
 `;
 }
+
+
+/* ==================================================
+   حسابات الصيدليات
+================================================== */
 
 function loadAccounts(){
 
@@ -1144,6 +1425,7 @@ function filteredAccounts(){
         (f === "inactive" && !a.active)
       )
     );
+
   });
 }
 
@@ -1153,8 +1435,10 @@ function renderAccounts(){
     filteredAccounts();
 
   if($("#accountSummary")){
+
     $("#accountSummary").textContent =
       `عرض ${list.length} من ${pharmacies.length} حساب`;
+
   }
 
   if(!$("#accountTable")){
@@ -1245,6 +1529,11 @@ ${accountPill(a.active !== false)}
 `;
 }
 
+
+/* ==================================================
+   الصفحة الرئيسية للوحة الإدارة
+================================================== */
+
 function renderHomePending(){
 
   const p =
@@ -1317,7 +1606,14 @@ ${inventoryPill(
 لا توجد تحديثات مخزون.
 </div>
 `;
-}async function refreshAll(){
+}
+
+
+/* ==================================================
+   تحديث جميع بيانات لوحة الإدارة
+================================================== */
+
+async function refreshAll(){
 
   try{
 
@@ -1353,147 +1649,337 @@ ${inventoryPill(
       alert(e.message);
 
     }
+
   }
+}/* ==================================================
+   تحديث البريد الإلكتروني — توافق إضافي
+================================================== */
+
+window.updatePharmacyEmail =
+  async id => {
+
+    const p =
+      pharmacies.find(
+        x => x.id === id
+      );
+
+    if(!p) return;
+
+    const account =
+      p.pharmacy_accounts?.[0] ||
+      {};
+
+    const currentEmail =
+      account.email || "";
+
+    const email =
+      prompt(
+        "أدخل البريد الإلكتروني الجديد:",
+        currentEmail
+      );
+
+    if(email === null){
+      return;
+    }
+
+    const value =
+      email.trim().toLowerCase();
+
+    if(!value){
+      alert(
+        "البريد الإلكتروني مطلوب."
+      );
+      return;
+    }
+
+    try{
+
+      await api(
+        `/api/admin/pharmacies/${id}/email`,
+        {
+          method:"PATCH",
+
+          body:JSON.stringify({
+            email:value
+          })
+        }
+      );
+
+      alert(
+        "تم تحديث البريد الإلكتروني بنجاح."
+      );
+
+      await refreshAll();
+
+      if(
+        document.querySelector(
+          ".modal-backdrop"
+        )
+      ){
+        closeModal();
+      }
+
+    }catch(e){
+
+      alert(e.message);
+
+    }
+  };
+
+
+/* ==================================================
+   أدوات البحث والتصفية
+================================================== */
+
+const pharmacySearch =
+  $("#pharmacySearch");
+
+if(pharmacySearch){
+
+  pharmacySearch.addEventListener(
+    "input",
+    () => renderPharmacies()
+  );
+
+}
+
+const pharmacyFilter =
+  $("#pharmacyFilter");
+
+if(pharmacyFilter){
+
+  pharmacyFilter.addEventListener(
+    "change",
+    () => renderPharmacies()
+  );
+
+}
+
+const medicineSearch =
+  $("#medicineSearch");
+
+if(medicineSearch){
+
+  medicineSearch.addEventListener(
+    "input",
+    () => renderMedicines()
+  );
+
+}
+
+const medicineFilter =
+  $("#medicineFilter");
+
+if(medicineFilter){
+
+  medicineFilter.addEventListener(
+    "change",
+    () => renderMedicines()
+  );
+
+}
+
+const inventorySearch =
+  $("#inventorySearch");
+
+if(inventorySearch){
+
+  inventorySearch.addEventListener(
+    "input",
+    () => renderInventory()
+  );
+
+}
+
+const inventoryFilter =
+  $("#inventoryFilter");
+
+if(inventoryFilter){
+
+  inventoryFilter.addEventListener(
+    "change",
+    () => renderInventory()
+  );
+
+}
+
+const accountSearch =
+  $("#accountSearch");
+
+if(accountSearch){
+
+  accountSearch.addEventListener(
+    "input",
+    () => renderAccounts()
+  );
+
+}
+
+const accountFilter =
+  $("#accountFilter");
+
+if(accountFilter){
+
+  accountFilter.addEventListener(
+    "change",
+    () => renderAccounts()
+  );
+
 }
 
 
-/* =========================
-   ربط عناصر لوحة الإدارة
-   بطريقة آمنة
-========================= */
+/* ==================================================
+   التبويبات
+================================================== */
 
-$$(".nav").forEach(button => {
+document
+  .querySelectorAll(".nav")
+  .forEach(btn => {
 
-  button.addEventListener(
+    btn.addEventListener(
+      "click",
+      () => {
+
+        const target =
+          btn.dataset.target ||
+          btn.dataset.section;
+
+        if(!target){
+          return;
+        }
+
+        document
+          .querySelectorAll(".nav")
+          .forEach(x =>
+            x.classList.remove("active")
+          );
+
+        btn.classList.add("active");
+
+        document
+          .querySelectorAll(".section")
+          .forEach(section =>
+            section.classList.add("hidden")
+          );
+
+        const section =
+          document.getElementById(target);
+
+        if(section){
+          section.classList.remove("hidden");
+        }
+
+      }
+    );
+
+  });
+
+
+/* ==================================================
+   إضافة دواء
+================================================== */
+
+const addMedicineBtn =
+  $("#addMedicineBtn");
+
+if(addMedicineBtn){
+
+  addMedicineBtn.addEventListener(
     "click",
-    () => show(button.dataset.view)
+    () => {
+
+      window._editingMedicine =
+        null;
+
+      openModal(`
+
+<h3>
+إضافة دواء جديد
+</h3>
+
+${medicineForm({})}
+
+`);
+
+    }
   );
 
-});
+}
 
-$("#filter")?.addEventListener(
-  "change",
-  loadPharmacies
-);
 
-$("#pharmacySearch")?.addEventListener(
-  "input",
-  renderPharmacies
-);
+/* ==================================================
+   إغلاق النوافذ المنبثقة
+================================================== */
 
-$("#medicineSearch")?.addEventListener(
-  "input",
-  renderMedicines
-);
-
-$("#medicineFilter")?.addEventListener(
-  "change",
-  renderMedicines
-);
-
-$("#inventorySearch")?.addEventListener(
-  "input",
-  renderInventory
-);
-
-$("#inventoryFilter")?.addEventListener(
-  "change",
-  renderInventory
-);
-
-$("#accountSearch")?.addEventListener(
-  "input",
-  renderAccounts
-);
-
-$("#accountFilter")?.addEventListener(
-  "change",
-  renderAccounts
-);
-
-$("#refresh")?.addEventListener(
+document.addEventListener(
   "click",
-  refreshAll
-);
+  event => {
 
-$("#refreshPh")?.addEventListener(
-  "click",
-  loadPharmacies
-);
+    const target =
+      event.target;
 
-$("#refreshInv")?.addEventListener(
-  "click",
-  loadInventory
-);
+    if(
+      target.matches(
+        "[data-close-modal]"
+      )
+    ){
 
-$("#refreshAccounts")?.addEventListener(
-  "click",
-  () => renderAccounts()
-);
-
-$("#close")?.addEventListener(
-  "click",
-  closeModal
-);
-
-$("#modal")?.addEventListener(
-  "click",
-  e => {
-
-    if(e.target.id === "modal"){
       closeModal();
+
     }
 
   }
 );
 
-$("#logout")?.addEventListener(
-  "click",
-  () => {
 
-    localStorage.removeItem(
-      "dawai_admin_token"
-    );
+/* ==================================================
+   تسجيل خروج الإدارة
+================================================== */
 
-    token = null;
+const logoutBtn =
+  $("#logoutBtn");
 
-    location.reload();
+if(logoutBtn){
 
-  }
-);
+  logoutBtn.addEventListener(
+    "click",
+    () => {
 
-$("#addMedicine")?.addEventListener(
-  "click",
-  () => {
+      localStorage.removeItem(
+        "dawai_admin_token"
+      );
 
-    window._editingMedicine = null;
+      token = null;
 
-    openModal(`
-      <h3>إضافة دواء جديد</h3>
-      ${medicineForm()}
-    `);
+      location.reload();
 
-  }
-);
+    }
+  );
+
+}
 
 
-/* =========================
+/* ==================================================
    تسجيل دخول الإدارة
-========================= */
+================================================== */
 
 const loginForm =
-  document.querySelector("#loginForm");
+  document.querySelector(
+    "#loginForm"
+  );
 
 if(loginForm){
 
   loginForm.addEventListener(
     "submit",
-    async e => {
+    async event => {
 
-      e.preventDefault();
+      event.preventDefault();
 
       const loginMsg =
-        document.querySelector("#loginMsg");
+        document.querySelector(
+          "#loginMsg"
+        );
 
       const loginButton =
         loginForm.querySelector(
@@ -1511,6 +1997,18 @@ if(loginForm){
           "#password"
         )?.value || "";
 
+      if(!username || !password){
+
+        if(loginMsg){
+
+          loginMsg.textContent =
+            "يرجى إدخال اسم المستخدم وكلمة المرور.";
+
+        }
+
+        return;
+      }
+
       if(loginMsg){
 
         loginMsg.textContent =
@@ -1520,7 +2018,8 @@ if(loginForm){
 
       if(loginButton){
 
-        loginButton.disabled = true;
+        loginButton.disabled =
+          true;
 
         loginButton.dataset.oldText =
           loginButton.textContent;
@@ -1532,7 +2031,7 @@ if(loginForm){
 
       try{
 
-        const d =
+        const data =
           await api(
             "/api/admin/login",
             {
@@ -1545,7 +2044,8 @@ if(loginForm){
             }
           );
 
-        token = d.token;
+        token =
+          data.token;
 
         localStorage.setItem(
           "dawai_admin_token",
@@ -1553,17 +2053,25 @@ if(loginForm){
         );
 
         const login =
-          document.querySelector("#login");
+          document.querySelector(
+            "#login"
+          );
 
         const app =
-          document.querySelector("#app");
+          document.querySelector(
+            "#app"
+          );
 
         if(login){
-          login.classList.add("hidden");
+          login.classList.add(
+            "hidden"
+          );
         }
 
         if(app){
-          app.classList.remove("hidden");
+          app.classList.remove(
+            "hidden"
+          );
         }
 
         const adminName =
@@ -1572,34 +2080,36 @@ if(loginForm){
           );
 
         if(adminName){
+
           adminName.textContent =
-            d.username || username;
+            data.username ||
+            username;
+
         }
 
         if(loginMsg){
-          loginMsg.textContent =
-            "";
+          loginMsg.textContent = "";
         }
 
         await refreshAll();
 
-      }catch(err){
+      }catch(error){
 
         console.error(
           "Admin login error:",
-          err
+          error
         );
 
         if(loginMsg){
 
           loginMsg.textContent =
-            err.message ||
+            error.message ||
             "فشل تسجيل الدخول.";
 
         }else{
 
           alert(
-            err.message ||
+            error.message ||
             "فشل تسجيل الدخول."
           );
 
@@ -1626,9 +2136,9 @@ if(loginForm){
 }
 
 
-/* =========================
+/* ==================================================
    استعادة جلسة الإدارة
-========================= */
+================================================== */
 
 (async () => {
 
@@ -1638,23 +2148,35 @@ if(loginForm){
 
   try{
 
-    const d =
+    const data =
       await api(
         "/api/admin/me"
       );
 
     const login =
-      document.querySelector("#login");
+      document.querySelector(
+        "#login"
+      );
 
     const app =
-      document.querySelector("#app");
+      document.querySelector(
+        "#app"
+      );
 
     if(login){
-      login.classList.add("hidden");
+
+      login.classList.add(
+        "hidden"
+      );
+
     }
 
     if(app){
-      app.classList.remove("hidden");
+
+      app.classList.remove(
+        "hidden"
+      );
+
     }
 
     const adminName =
@@ -1663,8 +2185,11 @@ if(loginForm){
       );
 
     if(adminName){
+
       adminName.textContent =
-        d.username || "admin";
+        data.username ||
+        "admin";
+
     }
 
     await refreshAll();
@@ -1685,3 +2210,37 @@ if(loginForm){
   }
 
 })();
+
+
+/* ==================================================
+   تحديث تلقائي بسيط
+================================================== */
+
+window.addEventListener(
+  "focus",
+  async () => {
+
+    if(!token){
+      return;
+    }
+
+    try{
+
+      await refreshAll();
+
+    }catch(error){
+
+      console.error(
+        "Auto refresh error:",
+        error
+      );
+
+    }
+
+  }
+);
+
+
+/* ==================================================
+   نهاية ملف admin.js
+================================================== */
