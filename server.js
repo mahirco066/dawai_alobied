@@ -551,10 +551,7 @@ app.put(
   async (req, res) => {
     if (!requireDB(res)) return;
 
-    const {
-      quantity,
-      availability
-    } = req.body || {};
+    const { quantity, availability } = req.body || {};
 
     const allowed = [
       "available",
@@ -578,17 +575,13 @@ app.put(
           availability = $2,
           updated_at = NOW()
 
-        WHERE
-          id = $3
+        WHERE id = $3
           AND pharmacy_id = $4
 
         RETURNING *
         `,
         [
-          Math.max(
-            0,
-            Number(quantity || 0)
-          ),
+          Math.max(0, Number(quantity || 0)),
           availability,
           req.params.id,
           req.pharmacy.pharmacy_id
@@ -653,20 +646,9 @@ app.post(
           updated_at
         )
 
-        VALUES
-        (
-          $1,
-          $2,
-          $3,
-          $4,
-          NOW()
-        )
+        VALUES ($1,$2,$3,$4,NOW())
 
-        ON CONFLICT
-        (
-          pharmacy_id,
-          medicine_id
-        )
+        ON CONFLICT (pharmacy_id,medicine_id)
 
         DO UPDATE SET
           quantity = EXCLUDED.quantity,
@@ -678,17 +660,12 @@ app.post(
         [
           req.pharmacy.pharmacy_id,
           medicine_id,
-          Math.max(
-            0,
-            Number(quantity || 0)
-          ),
+          Math.max(0, Number(quantity || 0)),
           av
         ]
       );
 
-      res.status(201).json(
-        rows[0]
-      );
+      res.status(201).json(rows[0]);
     } catch (error) {
       res.status(500).json({
         error: error.message
@@ -729,6 +706,7 @@ function requireAdmin(req, res, next) {
     }
 
     req.admin = payload;
+
     next();
   } catch {
     res.status(401).json({
@@ -738,14 +716,14 @@ function requireAdmin(req, res, next) {
 }
 
 app.post("/api/admin/login", (req, res) => {
-  const {
-    username,
-    password
-  } = req.body || {};
+  const { username, password } =
+    req.body || {};
 
   if (
-    String(username || "") !== ADMIN_USERNAME ||
-    String(password || "") !== ADMIN_PASSWORD
+    String(username || "") !==
+      ADMIN_USERNAME ||
+    String(password || "") !==
+      ADMIN_PASSWORD
   ) {
     return res.status(401).json({
       error:
@@ -760,10 +738,9 @@ app.post("/api/admin/login", (req, res) => {
         username: ADMIN_USERNAME
       },
       JWT_SECRET,
-      {
-        expiresIn: "7d"
-      }
+      { expiresIn: "7d" }
     ),
+
     username: ADMIN_USERNAME
   });
 });
@@ -779,8 +756,6 @@ app.get(
   }
 );
 
-/* ================= إحصائيات الإدارة ================= */
-
 app.get(
   "/api/admin/stats",
   requireAdmin,
@@ -788,59 +763,50 @@ app.get(
     if (!requireDB(res)) return;
 
     try {
-      const pharmacies = await dbQuery(
-        `
-        SELECT
-          id,
-          status
-        FROM pharmacies
-        `
-      );
+      const pharmacies =
+        await dbQuery(
+          `SELECT id,status FROM pharmacies`
+        );
 
-      const medicines = await dbQuery(
-        `
-        SELECT
-          COUNT(*)::int AS count
-        FROM medicines
-        WHERE active = true
-        `
-      );
+      const medicines =
+        await dbQuery(
+          `SELECT COUNT(*)::int AS count
+           FROM medicines
+           WHERE active = true`
+        );
 
-      const inventory = await dbQuery(
-        `
-        SELECT
-          COUNT(*)::int AS count
-        FROM pharmacy_inventory
-        `
-      );
+      const inventory =
+        await dbQuery(
+          `SELECT COUNT(*)::int AS count
+           FROM pharmacy_inventory`
+        );
 
-      const accounts = await dbQuery(
-        `
-        SELECT
-          COUNT(*)::int AS count
-        FROM pharmacy_accounts
-        `
-      );
+      const accounts =
+        await dbQuery(
+          `SELECT COUNT(*)::int AS count
+           FROM pharmacy_accounts`
+        );
 
-      const rows = pharmacies.rows;
+      const rows =
+        pharmacies.rows;
 
       res.json({
         pharmacies: rows.length,
 
-        pending: rows.filter(
-          (x) =>
-            x.status === "pending"
-        ).length,
+        pending:
+          rows.filter(
+            x => x.status === "pending"
+          ).length,
 
-        approved: rows.filter(
-          (x) =>
-            x.status === "approved"
-        ).length,
+        approved:
+          rows.filter(
+            x => x.status === "approved"
+          ).length,
 
-        suspended: rows.filter(
-          (x) =>
-            x.status === "suspended"
-        ).length,
+        suspended:
+          rows.filter(
+            x => x.status === "suspended"
+          ).length,
 
         medicines:
           medicines.rows[0].count,
@@ -859,7 +825,7 @@ app.get(
   }
 );
 
-/* ================= الصيدليات في لوحة الإدارة ================= */
+/* الصيدليات في لوحة الإدارة */
 
 app.get(
   "/api/admin/pharmacies",
@@ -868,13 +834,10 @@ app.get(
     if (!requireDB(res)) return;
 
     const status =
-      String(
-        req.query.status || ""
-      );
+      String(req.query.status || "");
 
     try {
       const params = [];
-
       let where = "";
 
       if (
@@ -885,7 +848,6 @@ app.get(
         ].includes(status)
       ) {
         params.push(status);
-
         where =
           "WHERE p.status = $1";
       }
@@ -894,13 +856,10 @@ app.get(
         await dbQuery(
           `
           SELECT
-
             p.*,
 
             a.id AS account_id,
-
             a.email AS account_email,
-
             a.active AS account_active
 
           FROM pharmacies p
@@ -910,8 +869,7 @@ app.get(
 
           ${where}
 
-          ORDER BY
-            p.created_at DESC
+          ORDER BY p.created_at DESC
           `,
           params
         );
@@ -926,10 +884,8 @@ app.get(
                   {
                     id:
                       x.account_id,
-
                     email:
                       x.account_email,
-
                     active:
                       x.account_active
                   }
@@ -945,7 +901,267 @@ app.get(
   }
 );
 
-/* ================= تغيير حالة الصيدلية ================= */
+/* تعديل بيانات الصيدلية */
+
+app.patch(
+  "/api/admin/pharmacies/:id",
+  requireAdmin,
+  async (req, res) => {
+    if (!requireDB(res)) return;
+
+    const {
+      name,
+      phone,
+      address,
+      opening_hours,
+      delivery
+    } = req.body || {};
+
+    if (!name || !phone) {
+      return res.status(400).json({
+        error: "اسم الصيدلية والهاتف مطلوبان."
+      });
+    }
+
+    try {
+      const { rows } = await dbQuery(
+        `
+        UPDATE pharmacies
+        SET
+          name = $1,
+          phone = $2,
+          address = $3,
+          opening_hours = $4,
+          delivery = $5,
+          updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+        `,
+        [
+          String(name).trim(),
+          String(phone).trim(),
+          address ? String(address).trim() : null,
+          opening_hours
+            ? String(opening_hours).trim()
+            : null,
+          Boolean(delivery),
+          req.params.id
+        ]
+      );
+
+      if (!rows[0]) {
+        return res.status(404).json({
+          error: "الصيدلية غير موجودة."
+        });
+      }
+
+      res.json({
+        ok: true,
+        pharmacy: rows[0],
+        message: "تم تحديث بيانات الصيدلية بنجاح."
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error.message
+      });
+    }
+  }
+);
+
+/* تغيير البريد الإلكتروني للصيدلية */
+
+app.patch(
+  "/api/admin/pharmacies/:id/email",
+  requireAdmin,
+  async (req, res) => {
+    if (!requireDB(res)) return;
+
+    const email =
+      String(req.body?.email || "")
+        .trim()
+        .toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        error: "البريد الإلكتروني مطلوب."
+      });
+    }
+
+    const emailPattern =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+      return res.status(400).json({
+        error: "صيغة البريد الإلكتروني غير صحيحة."
+      });
+    }
+
+    try {
+      const pharmacy = await dbQuery(
+        `
+        SELECT id, name
+        FROM pharmacies
+        WHERE id = $1
+        LIMIT 1
+        `,
+        [req.params.id]
+      );
+
+      if (!pharmacy.rows[0]) {
+        return res.status(404).json({
+          error: "الصيدلية غير موجودة."
+        });
+      }
+
+      const existing = await dbQuery(
+        `
+        SELECT id
+        FROM pharmacy_accounts
+        WHERE
+          LOWER(email) = LOWER($1)
+          AND pharmacy_id <> $2
+        LIMIT 1
+        `,
+        [email, req.params.id]
+      );
+
+      if (existing.rows[0]) {
+        return res.status(409).json({
+          error:
+            "هذا البريد الإلكتروني مستخدم بالفعل لحساب صيدلية أخرى."
+        });
+      }
+
+      const account = await dbQuery(
+        `
+        SELECT id
+        FROM pharmacy_accounts
+        WHERE pharmacy_id = $1
+        LIMIT 1
+        `,
+        [req.params.id]
+      );
+
+      if (!account.rows[0]) {
+        return res.status(404).json({
+          error:
+            "لا يوجد حساب دخول مرتبط بهذه الصيدلية."
+        });
+      }
+
+      const { rows } = await dbQuery(
+        `
+        UPDATE pharmacy_accounts
+        SET email = $1
+        WHERE id = $2
+        RETURNING id, pharmacy_id, email, active
+        `,
+        [email, account.rows[0].id]
+      );
+
+      res.json({
+        ok: true,
+        pharmacy_id: pharmacy.rows[0].id,
+        pharmacy_name: pharmacy.rows[0].name,
+        email: rows[0].email,
+        active: rows[0].active,
+        message:
+          "تم تحديث البريد الإلكتروني بنجاح."
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error.message
+      });
+    }
+  }
+);
+
+/* تغيير كلمة مرور الصيدلية */
+
+app.patch(
+  "/api/admin/pharmacies/:id/password",
+  requireAdmin,
+  async (req, res) => {
+    if (!requireDB(res)) return;
+
+    const password =
+      String(req.body?.password || "");
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        error:
+          "كلمة المرور يجب أن تكون 8 أحرف على الأقل."
+      });
+    }
+
+    try {
+      const pharmacy = await dbQuery(
+        `
+        SELECT id, name
+        FROM pharmacies
+        WHERE id = $1
+        LIMIT 1
+        `,
+        [req.params.id]
+      );
+
+      if (!pharmacy.rows[0]) {
+        return res.status(404).json({
+          error: "الصيدلية غير موجودة."
+        });
+      }
+
+      const account = await dbQuery(
+        `
+        SELECT id, email
+        FROM pharmacy_accounts
+        WHERE pharmacy_id = $1
+        LIMIT 1
+        `,
+        [req.params.id]
+      );
+
+      if (!account.rows[0]) {
+        return res.status(404).json({
+          error:
+            "لا يوجد حساب دخول مرتبط بهذه الصيدلية."
+        });
+      }
+
+      const passwordHash =
+        await bcrypt.hash(password, 12);
+
+      await dbQuery(
+        `
+        UPDATE pharmacy_accounts
+        SET
+          password_hash = $1,
+          active = true
+        WHERE id = $2
+        `,
+        [
+          passwordHash,
+          account.rows[0].id
+        ]
+      );
+
+      res.json({
+        ok: true,
+        pharmacy_id: pharmacy.rows[0].id,
+        pharmacy_name: pharmacy.rows[0].name,
+        email: account.rows[0].email,
+        message:
+          "تم تحديث كلمة المرور بنجاح."
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error.message
+      });
+    }
+  }
+);
+
+/* تغيير حالة الصيدلية */
 
 app.patch(
   "/api/admin/pharmacies/:id/status",
@@ -954,9 +1170,7 @@ app.patch(
     if (!requireDB(res)) return;
 
     const status =
-      String(
-        req.body?.status || ""
-      );
+      String(req.body?.status || "");
 
     if (
       ![
@@ -1006,7 +1220,7 @@ app.patch(
   }
 );
 
-/* ================= حذف الصيدلية ================= */
+/* حذف الصيدلية */
 
 app.delete(
   "/api/admin/pharmacies/:id",
@@ -1017,13 +1231,9 @@ app.delete(
     try {
       const result =
         await dbQuery(
-          `
-          DELETE FROM pharmacies
-          WHERE id = $1
-          `,
-          [
-            req.params.id
-          ]
+          `DELETE FROM pharmacies
+           WHERE id = $1`,
+          [req.params.id]
         );
 
       if (!result.rowCount) {
@@ -1042,31 +1252,26 @@ app.delete(
       });
     }
   }
-);/* ================= الأدوية في لوحة الإدارة ================= */
+);
+
+/* ================= إدارة الأدوية ================= */
 
 app.get(
   "/api/admin/medicines",
   requireAdmin,
   async (req, res) => {
-
-    if (!requireDB(res))
-      return;
+    if (!requireDB(res)) return;
 
     try {
-
       const { rows } =
-        await dbQuery(`
-          SELECT *
-          FROM medicines
-          ORDER BY
-            active DESC,
-            name ASC
-        `);
+        await dbQuery(
+          `SELECT *
+           FROM medicines
+           ORDER BY name`
+        );
 
       res.json(rows);
-
     } catch (error) {
-
       res.status(500).json({
         error: error.message
       });
@@ -1074,34 +1279,27 @@ app.get(
   }
 );
 
-
-/* ================= إضافة دواء ================= */
-
 app.post(
   "/api/admin/medicines",
   requireAdmin,
   async (req, res) => {
-
-    if (!requireDB(res))
-      return;
+    if (!requireDB(res)) return;
 
     const {
       name,
       generic_name,
       strength,
-      form,
-      active
+      form
     } = req.body || {};
 
     if (!name) {
-
       return res.status(400).json({
-        error: "اسم الدواء مطلوب."
+        error:
+          "اسم الدواء مطلوب."
       });
     }
 
     try {
-
       const { rows } =
         await dbQuery(
           `
@@ -1115,43 +1313,32 @@ app.post(
           )
 
           VALUES
-          (
-            $1,
-            $2,
-            $3,
-            $4,
-            $5
-          )
+          ($1,$2,$3,$4,true)
 
           RETURNING *
           `,
           [
             String(name).trim(),
-
             generic_name
-              ? String(generic_name).trim()
+              ? String(
+                  generic_name
+                ).trim()
               : null,
-
             strength
-              ? String(strength).trim()
+              ? String(
+                  strength
+                ).trim()
               : null,
-
             form
               ? String(form).trim()
-              : null,
-
-            active !== undefined
-              ? Boolean(active)
-              : true
+              : null
           ]
         );
 
       res.status(201).json(
         rows[0]
       );
-
     } catch (error) {
-
       res.status(500).json({
         error: error.message
       });
@@ -1159,90 +1346,94 @@ app.post(
   }
 );
 
-
-/* ================= تعديل دواء ================= */
-
 app.patch(
   "/api/admin/medicines/:id",
   requireAdmin,
   async (req, res) => {
+    if (!requireDB(res)) return;
 
-    if (!requireDB(res))
-      return;
+    const allowed = [
+      "name",
+      "generic_name",
+      "strength",
+      "form"
+    ];
 
-    const {
-      name,
-      generic_name,
-      strength,
-      form,
-      active
-    } = req.body || {};
+    const sets = [];
+    const params = [];
+
+    for (
+      const key of allowed
+    ) {
+      if (
+        req.body?.[key] !==
+        undefined
+      ) {
+        params.push(
+          req.body[key]
+            ? String(
+                req.body[key]
+              ).trim()
+            : null
+        );
+
+        sets.push(
+          `${key} = $${params.length}`
+        );
+      }
+    }
+
+    if (
+      req.body?.active !==
+      undefined
+    ) {
+      params.push(
+        Boolean(
+          req.body.active
+        )
+      );
+
+      sets.push(
+        `active = $${params.length}`
+      );
+    }
+
+    if (!sets.length) {
+      return res.status(400).json({
+        error:
+          "لا توجد بيانات للتعديل."
+      });
+    }
+
+    params.push(
+      req.params.id
+    );
 
     try {
-
       const { rows } =
         await dbQuery(
           `
           UPDATE medicines
 
           SET
-            name =
-              COALESCE($1, name),
+            ${sets.join(", ")}
 
-            generic_name =
-              COALESCE($2, generic_name),
-
-            strength =
-              COALESCE($3, strength),
-
-            form =
-              COALESCE($4, form),
-
-            active =
-              COALESCE($5, active)
-
-          WHERE id = $6
+          WHERE id = $${params.length}
 
           RETURNING *
           `,
-          [
-            name !== undefined
-              ? String(name).trim()
-              : null,
-
-            generic_name !== undefined
-              ? String(generic_name).trim()
-              : null,
-
-            strength !== undefined
-              ? String(strength).trim()
-              : null,
-
-            form !== undefined
-              ? String(form).trim()
-              : null,
-
-            active !== undefined
-              ? Boolean(active)
-              : null,
-
-            req.params.id
-          ]
+          params
         );
 
       if (!rows[0]) {
-
         return res.status(404).json({
-          error: "الدواء غير موجود."
+          error:
+            "الدواء غير موجود."
         });
       }
 
-      res.json(
-        rows[0]
-      );
-
+      res.json(rows[0]);
     } catch (error) {
-
       res.status(500).json({
         error: error.message
       });
@@ -1250,23 +1441,19 @@ app.patch(
   }
 );
 
-
-/* ================= مخزون جميع الصيدليات ================= */
+/* ================= إدارة المخزون ================= */
 
 app.get(
   "/api/admin/inventory",
   requireAdmin,
   async (req, res) => {
-
-    if (!requireDB(res))
-      return;
+    if (!requireDB(res)) return;
 
     try {
-
       const { rows } =
-        await dbQuery(`
+        await dbQuery(
+          `
           SELECT
-
             pi.id,
             pi.quantity,
             pi.availability,
@@ -1274,15 +1461,13 @@ app.get(
 
             p.id AS pharmacy_id,
             p.name AS pharmacy_name,
-            p.phone AS pharmacy_phone,
             p.status AS pharmacy_status,
 
             m.id AS medicine_id,
             m.name AS medicine_name,
             m.generic_name,
             m.strength,
-            m.form,
-            m.active AS medicine_active
+            m.form
 
           FROM pharmacy_inventory pi
 
@@ -1294,751 +1479,62 @@ app.get(
 
           ORDER BY
             pi.updated_at DESC
-        `);
 
-      res.json(rows);
-
-    } catch (error) {
-
-      res.status(500).json({
-        error: error.message
-      });
-    }
-  }
-);
-
-
-/* ================= حسابات الصيدليات ================= */
-
-app.get(
-  "/api/admin/accounts",
-  requireAdmin,
-  async (req, res) => {
-
-    if (!requireDB(res))
-      return;
-
-    try {
-
-      const { rows } =
-        await dbQuery(`
-          SELECT
-
-            a.id,
-            a.email,
-            a.active,
-            a.created_at,
-            a.pharmacy_id,
-
-            p.name AS pharmacy_name,
-            p.phone AS pharmacy_phone,
-            p.status AS pharmacy_status
-
-          FROM pharmacy_accounts a
-
-          JOIN pharmacies p
-            ON p.id = a.pharmacy_id
-
-          ORDER BY
-            p.name ASC
-        `);
-
-      res.json(rows);
-
-    } catch (error) {
-
-      res.status(500).json({
-        error: error.message
-      });
-    }
-  }
-);
-
-
-/* ================= تفعيل وإيقاف حساب الصيدلية ================= */
-
-app.patch(
-  "/api/admin/accounts/:id/status",
-  requireAdmin,
-  async (req, res) => {
-
-    if (!requireDB(res))
-      return;
-
-    const active =
-      Boolean(
-        req.body?.active
-      );
-
-    try {
-
-      const { rows } =
-        await dbQuery(
+          LIMIT 2000
           `
-          UPDATE pharmacy_accounts
-
-          SET active = $1
-
-          WHERE id = $2
-
-          RETURNING
-            id,
-            pharmacy_id,
-            email,
-            active
-          `,
-          [
-            active,
-            req.params.id
-          ]
         );
-
-      if (!rows[0]) {
-
-        return res.status(404).json({
-          error:
-            "حساب الصيدلية غير موجود."
-        });
-      }
-
-      res.json({
-        ok: true,
-        account: rows[0]
-      });
-
-    } catch (error) {
-
-      res.status(500).json({
-        error: error.message
-      });
-    }
-  }
-);
-
-
-/* ================= تغيير كلمة مرور الصيدلية ================= */
-
-app.patch(
-  "/api/admin/pharmacies/:id/password",
-  requireAdmin,
-  async (req, res) => {
-
-    if (!requireDB(res))
-      return;
-
-    const password =
-      String(
-        req.body?.password || ""
-      );
-
-    if (password.length < 8) {
-
-      return res.status(400).json({
-        error:
-          "كلمة المرور يجب أن تكون 8 أحرف على الأقل."
-      });
-    }
-
-    try {
-
-      const pharmacy =
-        await dbQuery(
-          `
-          SELECT
-            id,
-            name
-
-          FROM pharmacies
-
-          WHERE id = $1
-
-          LIMIT 1
-          `,
-          [
-            req.params.id
-          ]
-        );
-
-      if (!pharmacy.rows[0]) {
-
-        return res.status(404).json({
-          error:
-            "الصيدلية غير موجودة."
-        });
-      }
-
-      const account =
-        await dbQuery(
-          `
-          SELECT
-            id,
-            email
-
-          FROM pharmacy_accounts
-
-          WHERE pharmacy_id = $1
-
-          LIMIT 1
-          `,
-          [
-            req.params.id
-          ]
-        );
-
-      if (!account.rows[0]) {
-
-        return res.status(404).json({
-          error:
-            "لا يوجد حساب دخول مرتبط بهذه الصيدلية."
-        });
-      }
-
-      const passwordHash =
-        await bcrypt.hash(
-          password,
-          12
-        );
-
-      await dbQuery(
-        `
-        UPDATE pharmacy_accounts
-
-        SET
-          password_hash = $1,
-          active = true
-
-        WHERE id = $2
-        `,
-        [
-          passwordHash,
-          account.rows[0].id
-        ]
-      );
-
-      res.json({
-        ok: true,
-
-        pharmacy_id:
-          pharmacy.rows[0].id,
-
-        pharmacy_name:
-          pharmacy.rows[0].name,
-
-        email:
-          account.rows[0].email,
-
-        message:
-          "تم تحديث كلمة المرور بنجاح."
-      });
-
-    } catch (error) {
-
-      res.status(500).json({
-        error: error.message
-      });
-    }
-  }
-);
-
-
-/* ================= تغيير البريد الإلكتروني للصيدلية ================= */
-
-app.patch(
-  "/api/admin/pharmacies/:id/email",
-  requireAdmin,
-  async (req, res) => {
-
-    if (!requireDB(res))
-      return;
-
-    const email =
-      String(
-        req.body?.email || ""
-      )
-        .trim()
-        .toLowerCase();
-
-    if (!email) {
-
-      return res.status(400).json({
-        error:
-          "البريد الإلكتروني مطلوب."
-      });
-    }
-
-    const emailPattern =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (
-      !emailPattern.test(email)
-    ) {
-
-      return res.status(400).json({
-        error:
-          "صيغة البريد الإلكتروني غير صحيحة."
-      });
-    }
-
-    try {
-
-      const pharmacy =
-        await dbQuery(
-          `
-          SELECT
-            id,
-            name
-
-          FROM pharmacies
-
-          WHERE id = $1
-
-          LIMIT 1
-          `,
-          [
-            req.params.id
-          ]
-        );
-
-      if (!pharmacy.rows[0]) {
-
-        return res.status(404).json({
-          error:
-            "الصيدلية غير موجودة."
-        });
-      }
-
-      const existing =
-        await dbQuery(
-          `
-          SELECT
-            id,
-            pharmacy_id
-
-          FROM pharmacy_accounts
-
-          WHERE
-            LOWER(email) = LOWER($1)
-
-            AND pharmacy_id <> $2
-
-          LIMIT 1
-          `,
-          [
-            email,
-            req.params.id
-          ]
-        );
-
-      if (existing.rows[0]) {
-
-        return res.status(409).json({
-          error:
-            "هذا البريد الإلكتروني مستخدم بالفعل لحساب صيدلية أخرى."
-        });
-      }
-
-      const account =
-        await dbQuery(
-          `
-          SELECT
-            id
-
-          FROM pharmacy_accounts
-
-          WHERE pharmacy_id = $1
-
-          LIMIT 1
-          `,
-          [
-            req.params.id
-          ]
-        );
-
-      if (!account.rows[0]) {
-
-        return res.status(404).json({
-          error:
-            "لا يوجد حساب دخول مرتبط بهذه الصيدلية."
-        });
-      }
-
-      const { rows } =
-        await dbQuery(
-          `
-          UPDATE pharmacy_accounts
-
-          SET email = $1
-
-          WHERE id = $2
-
-          RETURNING
-            id,
-            pharmacy_id,
-            email,
-            active
-          `,
-          [
-            email,
-            account.rows[0].id
-          ]
-        );
-
-      res.json({
-
-        ok: true,
-
-        pharmacy_id:
-          pharmacy.rows[0].id,
-
-        pharmacy_name:
-          pharmacy.rows[0].name,
-
-        email:
-          rows[0].email,
-
-        active:
-          rows[0].active,
-
-        message:
-          "تم تحديث البريد الإلكتروني بنجاح."
-      });
-
-    } catch (error) {
-
-      res.status(500).json({
-        error: error.message
-      });
-    }
-  }
-);
-
-
-/* ================= مخزون دواء محدد ================= */
-
-app.get(
-  "/api/admin/medicines/:id/inventory",
-  requireAdmin,
-  async (req, res) => {
-
-    if (!requireDB(res))
-      return;
-
-    try {
-
-      const { rows } =
-        await dbQuery(
-          `
-          SELECT
-
-            pi.id,
-            pi.quantity,
-            pi.availability,
-            pi.updated_at,
-
-            p.id AS pharmacy_id,
-            p.name AS pharmacy_name,
-            p.phone AS pharmacy_phone,
-            p.address AS pharmacy_address,
-            p.status AS pharmacy_status
-
-          FROM pharmacy_inventory pi
-
-          JOIN pharmacies p
-            ON p.id = pi.pharmacy_id
-
-          WHERE
-            pi.medicine_id = $1
-
-          ORDER BY
-            p.name ASC
-          `,
-          [
-            req.params.id
-          ]
-        );
-
-      res.json(rows);
-
-    } catch (error) {
-
-      res.status(500).json({
-        error: error.message
-      });
-    }
-  }
-);
-
-
-/* ================= البحث الإداري ================= */
-
-app.get(
-  "/api/admin/search",
-  requireAdmin,
-  async (req, res) => {
-
-    if (!requireDB(res))
-      return;
-
-    const q =
-      String(
-        req.query.q || ""
-      ).trim();
-
-    if (!q) {
-
-      return res.json({
-        pharmacies: [],
-        medicines: []
-      });
-    }
-
-    try {
-
-      const pattern =
-        `%${q}%`;
-
-      const pharmacies =
-        await dbQuery(
-          `
-          SELECT *
-
-          FROM pharmacies
-
-          WHERE
-            name ILIKE $1
-
-            OR COALESCE(
-              phone,
-              ''
-            ) ILIKE $1
-
-            OR COALESCE(
-              address,
-              ''
-            ) ILIKE $1
-
-          ORDER BY name
-
-          LIMIT 50
-          `,
-          [
-            pattern
-          ]
-        );
-
-      const medicines =
-        await dbQuery(
-          `
-          SELECT *
-
-          FROM medicines
-
-          WHERE
-            name ILIKE $1
-
-            OR COALESCE(
-              generic_name,
-              ''
-            ) ILIKE $1
-
-          ORDER BY name
-
-          LIMIT 50
-          `,
-          [
-            pattern
-          ]
-        );
-
-      res.json({
-        pharmacies:
-          pharmacies.rows,
-
-        medicines:
-          medicines.rows
-      });
-
-    } catch (error) {
-
-      res.status(500).json({
-        error: error.message
-      });
-    }
-  }
-);
-
-
-/* ================= تحديث بيانات الصيدلية ================= */
-
-app.patch(
-  "/api/admin/pharmacies/:id",
-  requireAdmin,
-  async (req, res) => {
-
-    if (!requireDB(res))
-      return;
-
-    const {
-      name,
-      phone,
-      address,
-      latitude,
-      longitude,
-      opening_hours,
-      delivery
-    } = req.body || {};
-
-    try {
-
-      const { rows } =
-        await dbQuery(
-          `
-          UPDATE pharmacies
-
-          SET
-
-            name =
-              COALESCE($1, name),
-
-            phone =
-              COALESCE($2, phone),
-
-            address =
-              COALESCE($3, address),
-
-            latitude =
-              COALESCE($4, latitude),
-
-            longitude =
-              COALESCE($5, longitude),
-
-            opening_hours =
-              COALESCE($6, opening_hours),
-
-            delivery =
-              COALESCE($7, delivery),
-
-            updated_at =
-              NOW()
-
-          WHERE id = $8
-
-          RETURNING *
-          `,
-          [
-            name !== undefined
-              ? String(name).trim()
-              : null,
-
-            phone !== undefined
-              ? String(phone).trim()
-              : null,
-
-            address !== undefined
-              ? String(address).trim()
-              : null,
-
-            latitude !== undefined &&
-            latitude !== ""
-              ? Number(latitude)
-              : null,
-
-            longitude !== undefined &&
-            longitude !== ""
-              ? Number(longitude)
-              : null,
-
-            opening_hours !== undefined
-              ? String(opening_hours).trim()
-              : null,
-
-            delivery !== undefined
-              ? Boolean(delivery)
-              : null,
-
-            req.params.id
-          ]
-        );
-
-      if (!rows[0]) {
-
-        return res.status(404).json({
-          error:
-            "الصيدلية غير موجودة."
-        });
-      }
 
       res.json(
-        rows[0]
+        rows.map((x) => ({
+          id: x.id,
+          quantity: x.quantity,
+          availability:
+            x.availability,
+          updated_at:
+            x.updated_at,
+
+          pharmacy: {
+            id:
+              x.pharmacy_id,
+            name:
+              x.pharmacy_name,
+            status:
+              x.pharmacy_status
+          },
+
+          medicine: {
+            id:
+              x.medicine_id,
+            name:
+              x.medicine_name,
+            generic_name:
+              x.generic_name,
+            strength:
+              x.strength,
+            form:
+              x.form
+          }
+        }))
       );
-
     } catch (error) {
-
       res.status(500).json({
         error: error.message
       });
     }
   }
-);/* ================= نهاية API ================= */
-
-/*
-  مهم:
-  نستخدم صيغة /*splat بدلاً من *
-  لأنها متوافقة مع Express 5.
-*/
-
-
-/* ================= API غير موجود ================= */
-
-app.use(
-  "/api",
-  (req, res) => {
-
-    res.status(404).json({
-      error:
-        "مسار API غير موجود."
-    });
-
-  }
 );
 
-
-/* ================= معالجة أخطاء الخادم ================= */
+/* ================= الواجهة ================= */
 
 app.use(
-  (
-    error,
-    req,
-    res,
-    next
-  ) => {
-
-    console.error(
-      "Server error:",
-      error
-    );
-
+  (req, res, next) => {
     if (
-      res.headersSent
+      req.method !== "GET" ||
+      req.path.startsWith("/api/")
     ) {
-      return next(error);
+      return next();
     }
 
-    res.status(500).json({
-      error:
-        "حدث خطأ داخلي في الخادم."
-    });
-
-  }
-);
-
-
-/* ================= الصفحة الرئيسية ================= */
-
-app.get(
-  "/",
-  (req, res) => {
-
     res.sendFile(
       path.join(
         __dirname,
@@ -2046,104 +1542,13 @@ app.get(
         "index.html"
       )
     );
-
   }
 );
-
-
-/* ================= صفحات الموقع ================= */
-
-app.get(
-  "/pharmacy.html",
-  (req, res) => {
-
-    res.sendFile(
-      path.join(
-        __dirname,
-        "public",
-        "pharmacy.html"
-      )
-    );
-
-  }
-);
-
-
-app.get(
-  "/admin.html",
-  (req, res) => {
-
-    res.sendFile(
-      path.join(
-        __dirname,
-        "public",
-        "admin.html"
-      )
-    );
-
-  }
-);
-
-
-/* ================= المسارات غير المعروفة ================= */
-
-/*
-  هذه الصيغة متوافقة مع Express 5.
-  وهي بديلة عن app.get("*"...)
-  الذي تسبب في فشل Render.
-*/
-
-app.get(
-  "/*splat",
-  (req, res) => {
-
-    res.sendFile(
-      path.join(
-        __dirname,
-        "public",
-        "index.html"
-      )
-    );
-
-  }
-);
-
-
-/* ================= تشغيل الخادم ================= */
 
 app.listen(
   PORT,
-  () => {
-
+  () =>
     console.log(
-      "===================================="
-    );
-
-    console.log(
-      "Dawai Alobied server started"
-    );
-
-    console.log(
-      `Port: ${PORT}`
-    );
-
-    console.log(
-      `Database configured: ${Boolean(
-        DATABASE_URL
-      )}`
-    );
-
-    console.log(
-      "Pharmacy portal: enabled"
-    );
-
-    console.log(
-      "Admin panel: enabled"
-    );
-
-    console.log(
-      "===================================="
-    );
-
-  }
+      `Dawai Alobied running on port ${PORT}`
+    )
 );
