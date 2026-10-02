@@ -38,3 +38,88 @@ nav{display:flex;align-items:center;justify-content:center;gap:18px;flex:1}nav a
 @media(max-width:1000px){.brand{min-width:auto}.nav{gap:10px}nav{gap:3px}.hero-inner{grid-template-columns:190px 1fr}.medicine-visual{transform:scale(.85)}.workspace-grid{grid-template-columns:1fr 270px}.result-card{grid-template-columns:68px 1.3fr 145px}.quantity-box{grid-column:3}.result-meta,.result-actions{grid-column:2/-1}}
 @media(max-width:800px){.topbar,.nav{height:62px}.brand-text small{display:none}.menu-btn{display:block;margin-right:auto}.login-link{display:none}nav{display:none;position:absolute;top:62px;right:10px;left:10px;flex-direction:column;align-items:stretch;background:#fff;border:1px solid #dcece7;border-radius:16px;padding:8px;box-shadow:var(--shadow)}nav.open{display:flex}nav a{height:auto;padding:11px;text-align:center;border:0}.hero{height:auto;min-height:390px}.hero-inner{grid-template-columns:1fr;padding:30px 0 75px}.medicine-visual{position:absolute;left:-70px;bottom:-15px;opacity:.38;transform:scale(.72)}.hero-center{width:100%}.hero h1{font-size:34px}.hero-actions{grid-template-columns:1fr;max-width:500px}.feature-card{min-height:55px}.workspace-grid{grid-template-columns:1fr}.sidebar{order:-1;padding-top:12px}.why-card{margin-top:0}.result-card{grid-template-columns:70px 1fr}.quantity-box{grid-column:2}.pharmacy-name{grid-column:2}.result-meta,.result-actions{grid-column:1/-1}.how-section{padding:55px 0}.steps{grid-template-columns:1fr}.pharmacy-cta-inner{flex-direction:column;align-items:flex-start}}
 @media(max-width:520px){.container{width:calc(100% - 20px)}.brand-mark{width:38px;height:38px}.brand-text strong{font-size:15px}.hero{min-height:440px}.hero h1{font-size:30px}.hero-center>p{font-size:10px}.hero-search{height:50px}.hero-actions{gap:8px}.feature-card{padding:8px 10px}.popular-list{gap:7px;padding:9px}.popular-list button{padding:6px 11px}.results-head{align-items:flex-start;flex-direction:column}.result-summary{align-items:flex-start;flex-direction:column}.result-card{grid-template-columns:1fr;padding:14px}.result-card-top,.pharmacy-name,.quantity-box,.result-meta,.result-actions{grid-column:auto}.pharmacy-name{border-right:0;border-top:1px solid #e7efed;padding:9px 0 0}.quantity-box{width:100%}.ocr-preview-wrap{grid-template-columns:1fr}.ocr-preview-wrap img{width:100%;height:180px}.ocr-panel{padding:65px 10px 15px}.footer-inner{flex-direction:column;align-items:flex-start}}
+
+.ocr-panel{margin-top:16px;padding:17px;border:1px solid #bfe5d9;border-radius:22px;background:rgba(255,255,255,.94);box-shadow:var(--shadow-soft);animation:fadeUp .35s ease}
+.ocr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ocr-head strong{display:block;color:var(--green-deep);font-size:14px}
+.ocr-head span{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.ocr-head button{width:34px;height:34px;border:0;border-radius:11px;background:#edf7f5;color:var(--green-dark);font-size:22px}
+.ocr-progress{height:7px;background:#e6f1ef;border-radius:99px;overflow:hidden;margin-bottom:14px}
+#ocrProgressBar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:99px;transition:width .25s ease}
+.ocr-preview-wrap{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start}
+#prescriptionPreview{width:150px;height:145px;object-fit:cover;border-radius:16px;border:1px solid #d8ebe6;background:#f6fbfa}
+.ocr-label{display:block;color:var(--green-dark);font-size:11px;font-weight:900;margin-bottom:6px}
+.ocr-text{min-height:90px;max-height:145px;overflow:auto;padding:11px;border:1px solid #e0ece9;background:#f8fcfb;border-radius:14px;color:#476873;font-size:11px;line-height:1.9;white-space:pre-wrap}
+.ocr-medicines{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ocr-medicine{border:1px solid #c8e7de;background:#eefaf6;color:var(--green-dark);border-radius:999px;padding:7px 11px;font-size:10px;font-weight:800}
+.ocr-medicine.searching{opacity:.65}
+.ocr-note{display:block;color:#8b7070;background:#fff8f3;border:1px solid #f3dfcf;border-radius:12px;padding:9px;font-size:10px;line-height:1.8;margin:11px 0 0}
+
+/* =========================
+   بيانات التصميم والتطوير في التذييل
+========================= */
+.footer-credit,
+.footer-developer{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:nowrap;
+  white-space:nowrap;
+}
+.footer-credit strong,
+.footer-developer strong{
+  color:#d9f0ec;
+  font-size:12px;
+  font-weight:700;
+}
+.footer-credit span,
+.footer-developer span{
+  display:inline-block;
+  color:#ffffff;
+  font-size:16px;
+  font-weight:800;
+  margin-top:0;
+}
+.footer-credit span + span,
+.footer-developer span + span{
+  margin-right:0;
+}
+.footer-credit .developer-name,
+.footer-credit .developer-phone,
+.footer-developer .developer-name,
+.footer-developer .developer-phone,
+.footer-developer .developer-info{
+  color:#ffffff;
+  font-size:16px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+@media(max-width:800px){
+  .footer-credit,
+  .footer-developer{
+    width:100%;
+    justify-content:center;
+  }
+}
+
+@media(max-width:520px){
+  .footer-credit,
+  .footer-developer{
+    gap:6px;
+  }
+  .footer-credit strong,
+  .footer-developer strong{
+    font-size:10px;
+  }
+  .footer-credit span,
+  .footer-developer span,
+  .footer-credit .developer-name,
+  .footer-credit .developer-phone,
+  .footer-developer .developer-name,
+  .footer-developer .developer-phone,
+  .footer-developer .developer-info{
+    font-size:13px;
+  }
+}
