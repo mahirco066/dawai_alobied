@@ -1,421 +1,177 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-
-  <title>دوائي الأبيض</title>
-
+  <meta name="description" content="دوائي الأبيض - ابحث عن الدواء واعرف الصيدليات التي يتوفر فيها بمدينة الأبيض">
+  <title>دوائي الأبيض | البحث عن الأدوية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
-    rel="stylesheet"
-  >
-
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=10">
 </head>
-
 <body>
 
-<header>
-
-  <div class="brand">
-    <b>💊</b>
-
-    <div>
-      <strong>دوائي الأبيض</strong>
-      <small>دليلك للوصول إلى الدواء</small>
-    </div>
-  </div>
-
-  <button id="locationBtn">
-    📍 الأبيض
-  </button>
-
-</header>
-
-
-<main>
-
-  <!-- =========================
-       Hero
-  ========================== -->
-
-  <section class="hero">
-
-    <div>
-
-      <span class="badge">
-        منصة البحث عن الأدوية والصيدليات
-      </span>
-
-      <h1>
-        ابحث عن دوائك<br>
-        <em>قبل أن تذهب للصيدلية</em>
-      </h1>
-
-      <p>
-        اكتب اسم الدواء لمعرفة الصيدليات التي أعلنت توفره في مدينة الأبيض.
-      </p>
-
-
-      <form id="searchForm">
-
-        <span>🔎</span>
-
-        <input
-          id="medicineInput"
-          placeholder="مثال: Augmentin 625 mg"
-        >
-
-        <button>
-          بحث
-        </button>
-
-      </form>
-
-
-      <div class="actions">
-
-        <button id="prescriptionBtn">
-          📷 تصوير الروشتة
-        </button>
-
-        <button id="mapBtn">
-          🗺️ الصيدليات على الخريطة
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <aside>
-
-      <div class="bigicon">
-        💚
-      </div>
-
-      <h2>
-        اعثر على الدواء بسهولة
-      </h2>
-
-      <p>
-        بدل البحث صيدلية صيدلية، ابحث مرة واحدة وشاهد النتائج المتاحة.
-      </p>
-
-      <hr>
-
-      <div>
-        <span>صيدليات مشاركة</span>
-        <b>24</b>
-      </div>
-
-      <div>
-        <span>أدوية مسجلة</span>
-        <b>1,250+</b>
-      </div>
-
-    </aside>
-
-  </section>
-
-
-  <!-- =========================
-       Quick Actions
-  ========================== -->
-
-  <section>
-
-    <div class="heading">
-
+<header class="topbar">
+  <div class="container nav">
+    <a class="brand" href="/">
+      <span class="brand-icon">💊</span>
       <span>
-        ابدأ بسرعة
+        <strong>دوائي الأبيض</strong>
+        <small>منصة البحث عن الأدوية والصيدليات</small>
       </span>
-
-      <h2>
-        ماذا تريد أن تفعل؟
-      </h2>
-
-    </div>
-
-
-    <div class="quick">
-
-      <button data-a="search">
-        🔎
-        <b>البحث عن دواء</b>
-        <small>
-          ابحث باسم الدواء واعرف أين تجده.
-        </small>
-      </button>
-
-
-      <button data-a="prescription">
-        📷
-        <b>تصوير الروشتة</b>
-        <small>
-          سنضيف تحليل الروشتة في المرحلة القادمة.
-        </small>
-      </button>
-
-
-      <button data-a="nearby">
-        📍
-        <b>الصيدليات القريبة</b>
-        <small>
-          اعرض الصيدليات المسجلة في الأبيض.
-        </small>
-      </button>
-
-
-      <!-- بوابة الصيدلية -->
-
-      <button
-        data-a="pharmacy"
-        id="pharmacyPortalBtn"
-      >
-        🏪
-        <b>بوابة الصيدلية</b>
-        <small>
-          تسجيل صيدلية أو الدخول لتحديث توفر الأدوية.
-        </small>
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       Pharmacy Portal Banner
-  ========================== -->
-
-  <section class="pharmacy-portal">
-
-    <div>
-
-      <span>
-        🏪 لأصحاب الصيدليات
-      </span>
-
-      <h2>
-        انضم إلى شبكة دوائي الأبيض
-      </h2>
-
-      <p>
-        سجّل صيدليتك، وبعد اعتمادها يمكنك تحديث توفر الأدوية
-        ليعرف سكان الأبيض أين يجدون الدواء.
-      </p>
-
-    </div>
-
-    <a
-      href="pharmacy.html"
-      class="pharmacy-portal-btn"
-    >
-      دخول بوابة الصيدلية
-      <b>←</b>
     </a>
 
+    <nav>
+      <a class="active" href="#home">الرئيسية</a>
+      <a href="#search">البحث عن دواء</a>
+      <a href="#how">كيف تعمل المنصة؟</a>
+      <a href="pharmacy.html">بوابة الصيدلية</a>
+    </nav>
+
+    <button id="menuBtn" class="menu-btn" aria-label="فتح القائمة">☰</button>
+  </div>
+</header>
+
+<main id="home">
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="container hero-content">
+      <div class="hero-copy">
+        <span class="eyebrow">مدينة الأبيض – شمال كردفان</span>
+        <h1>ابحث عن دوائك<br><span>واعرف أين تجده</span></h1>
+        <p>
+          ابحث باسم الدواء أو الاسم العلمي، وستظهر لك الصيدليات المعتمدة
+          التي حدّثت مخزونها فعليًا مع الكمية وحالة التوفر وآخر تحديث.
+        </p>
+
+        <form id="searchForm" class="hero-search">
+          <span>⌕</span>
+          <input id="medicineSearch" autocomplete="off"
+                 placeholder="اكتب اسم الدواء مثل: Augmentin أو Panadol"
+                 aria-label="اسم الدواء">
+          <button type="submit">ابحث الآن</button>
+        </form>
+
+        <div class="quick-searches">
+          <span>بحث سريع:</span>
+          <button type="button" data-query="Augmentin">Augmentin</button>
+          <button type="button" data-query="Panadol">Panadol</button>
+          <button type="button" data-query="Amoxicillin">Amoxicillin</button>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-card-icon">✓</div>
+        <strong>بيانات حقيقية من الصيدليات</strong>
+        <p>تظهر النتائج بناءً على آخر تحديث سجّلته الصيدلية في المنصة.</p>
+        <div class="hero-card-row"><span>🏪</span><b>الصيدلية</b></div>
+        <div class="hero-card-row"><span>📦</span><b>الكمية</b></div>
+        <div class="hero-card-row"><span>●</span><b>حالة التوفر</b></div>
+      </div>
+    </div>
   </section>
 
+  <section id="search" class="search-section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">البحث الفعلي</span>
+          <h2>نتائج توفر الدواء</h2>
+          <p id="resultsHint">اكتب اسم الدواء ثم اضغط «ابحث الآن».</p>
+        </div>
+        <button id="clearResults" class="ghost hidden">مسح النتائج</button>
+      </div>
 
-  <!-- =========================
-       Search Results
-  ========================== -->
+      <div id="searchState" class="search-state">
+        <div class="state-icon">💊</div>
+        <h3>ابدأ بالبحث عن دواء</h3>
+        <p>ستظهر هنا الصيدليات التي لديها تحديث فعلي لمخزون الدواء.</p>
+      </div>
 
-  <section id="results">
+      <div id="loadingState" class="search-state hidden">
+        <div class="spinner"></div>
+        <h3>جاري البحث...</h3>
+        <p>نبحث في مخزون الصيدليات المعتمدة.</p>
+      </div>
 
-    <div class="heading">
+      <div id="errorState" class="search-state error hidden">
+        <div class="state-icon">!</div>
+        <h3>تعذر تنفيذ البحث</h3>
+        <p id="errorText">حدث خطأ أثناء الاتصال بالخادم.</p>
+        <button id="retryBtn" class="primary">إعادة المحاولة</button>
+      </div>
 
-      <span>
-        نتائج البحث
-      </span>
-
-      <h2 id="resultsTitle">
-        الصيدليات التي يتوفر فيها الدواء
-      </h2>
-
-      <button id="clear">
-        مسح البحث
-      </button>
-
+      <div id="resultsWrap" class="hidden">
+        <div class="result-summary">
+          <div>
+            <strong id="resultTitle">النتائج</strong>
+            <span id="resultCount"></span>
+          </div>
+          <span class="live-badge"><i></i> بيانات محدثة من الصيدليات</span>
+        </div>
+        <div id="resultsGrid" class="results-grid"></div>
+      </div>
     </div>
-
-
-    <div id="empty" class="empty">
-
-      💊
-
-      <h3>
-        ابدأ بالبحث عن دواء
-      </h3>
-
-      <p>
-        ستظهر هنا الصيدليات التي أعلنت توفر الدواء.
-      </p>
-
-    </div>
-
-
-    <div id="list"></div>
-
   </section>
 
+  <section id="how" class="how-section">
+    <div class="container">
+      <div class="section-head centered">
+        <span class="eyebrow">بسهولة</span>
+        <h2>كيف تعمل المنصة؟</h2>
+        <p>ثلاث خطوات للوصول إلى الدواء بصورة أسرع.</p>
+      </div>
 
-  <!-- =========================
-       Features
-  ========================== -->
+      <div class="steps">
+        <article>
+          <span>01</span>
+          <div>🔎</div>
+          <h3>ابحث عن الدواء</h3>
+          <p>اكتب اسم الدواء التجاري أو الاسم العلمي.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <div>🏪</div>
+          <h3>شاهد الصيدليات</h3>
+          <p>تعرف على الصيدليات المعتمدة التي حدّثت مخزونها.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <div>📦</div>
+          <h3>اعرف الكمية والحالة</h3>
+          <p>شاهد الكمية وحالة التوفر وآخر وقت للتحديث.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 
-  <section class="features">
-
-    <article>
-
-      🛡️
-
-      <b>
-        بيانات محدثة
-      </b>
-
-      <small>
-        حالة التوفر تعتمد على آخر تحديث للصيدلية.
-      </small>
-
-    </article>
-
-
-    <article>
-
-      📍
-
-      <b>
-        الوصول بسهولة
-      </b>
-
-      <small>
-        يمكن فتح موقع الصيدلية على الخريطة.
-      </small>
-
-    </article>
-
-
-    <article>
-
-      📞
-
-      <b>
-        تواصل مباشرة
-      </b>
-
-      <small>
-        اتصل بالصيدلية قبل الذهاب للتأكد من التوفر.
-      </small>
-
-    </article>
-
+  <section class="pharmacy-cta">
+    <div class="container pharmacy-cta-inner">
+      <div>
+        <span class="eyebrow">للصيدليات</span>
+        <h2>هل أنت صاحب صيدلية؟</h2>
+        <p>حدّث مخزونك ليصل للمستخدمين الباحثين عن الدواء.</p>
+      </div>
+      <a href="pharmacy.html" class="primary">دخول بوابة الصيدلية ←</a>
+    </div>
   </section>
 
 </main>
 
-
-<!-- =========================
-     Bottom Navigation
-========================== -->
-
-<nav>
-
-  <button class="active">
-    ⌂
-    <small>
-      الرئيسية
-    </small>
-  </button>
-
-
-  <button id="navSearch">
-    ⌕
-    <small>
-      البحث
-    </small>
-  </button>
-
-
-  <button id="navMap">
-    ⌖
-    <small>
-      الخريطة
-    </small>
-  </button>
-
-
-  <!-- حسابي = بوابة الصيدلية -->
-
-  <button
-    id="navAccount"
-    onclick="window.location.href='pharmacy.html'"
-  >
-    ◉
-    <small>
-      بوابة الصيدلية
-    </small>
-  </button>
-
-</nav>
-
-
-<!-- =========================
-     Modal
-========================== -->
-
-<div id="modal">
-
-  <div>
-
-    <button id="close">
-      ×
-    </button>
-
-    <section id="modalBody"></section>
-
+<footer>
+  <div class="container footer-inner">
+    <div>
+      <strong>دوائي الأبيض</strong>
+      <span>منصة البحث عن الأدوية والصيدليات بمدينة الأبيض</span>
+    </div>
+    <div>
+      <span>© <span id="year"></span> جميع الحقوق محفوظة</span>
+    </div>
   </div>
+</footer>
 
-</div>
-
-
-<script src="app.js"></script>
-
-
-<!-- =========================
-     ربط زر تسجيل الصيدلية
-========================== -->
-
-<script>
-
-  const pharmacyPortalBtn =
-    document.getElementById(
-      "pharmacyPortalBtn"
-    );
-
-  if (pharmacyPortalBtn) {
-
-    pharmacyPortalBtn.addEventListener(
-      "click",
-      function () {
-
-        window.location.href =
-          "pharmacy.html";
-
-      }
-    );
-
-  }
-
-</script>
-
-
+<script src="app.js?v=10"></script>
 </body>
 </html>

@@ -1,80 +1,246 @@
-const $=s=>document.querySelector(s);
-const $$=s=>[...document.querySelectorAll(s)];
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+let lastQuery = "";
+let lastResults = [];
 
-function renderResults(term,rows){
- const list=$("#resultsList"),empty=$("#resultsEmpty");
- $("#resultsTitle").textContent=term?`نتائج البحث عن: ${term}`:"الصيدليات التي يتوفر فيها الدواء";
- list.innerHTML="";
- if(!term||!rows.length){
-  empty.style.display="block";
-  empty.innerHTML=term?`<div>🔎</div><h3>لم نجد الدواء حاليًا</h3><p>جرّب اسمًا آخر أو تأكد من الاسم.</p>`:
-  `<div>💊</div><h3>ابدأ بالبحث عن دواء</h3><p>ستظهر هنا الصيدليات التي أعلنت توفر الدواء.</p>`;
-  return;
- }
- empty.style.display="none";
- list.innerHTML=rows.map(x=>{
-  const p=x.pharmacy||{},m=x.medicine||{};
-  const av=x.availability==="limited"?"متوفر بكمية محدودة":"متوفر";
-  const updated=x.updatedAt?new Date(x.updatedAt).toLocaleString("ar-SD",{dateStyle:"short",timeStyle:"short"}):"غير محدد";
-  const map=p.latitude&&p.longitude?`https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}`:"#";
-  return `<article class="pharmacy-card"><div class="pharmacy-main">
-  <div class="pharmacy-logo">🏪</div><div><h3>${esc(p.name)}</h3>
-  <span class="availability">● ${esc(av)}</span>
-  <div class="pharmacy-meta">💊 ${esc(m.name||"الدواء")}<br>📍 ${esc(p.address||"مدينة الأبيض")}<br>🕒 آخر تحديث: ${esc(updated)}</div>
-  </div></div><div class="pharmacy-actions">
-  ${p.phone?`<a class="action-btn primary" href="tel:${esc(p.phone)}">📞 اتصال</a>`:""}
-  ${p.latitude&&p.longitude?`<a class="action-btn" target="_blank" rel="noopener" href="${map}">🗺️ الخريطة</a>`:""}
-  </div></article>`;
- }).join("");
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-async function searchMedicine(term){
- const q=term.trim();
- if(!q){renderResults("",[]);return;}
- $("#resultsEmpty").style.display="block";
- $("#resultsEmpty").innerHTML=`<div>⏳</div><h3>جاري البحث...</h3><p>نبحث في الصيدليات المسجلة.</p>`;
- try{
-  const r=await fetch(`/api/medicines/search?q=${encodeURIComponent(q)}`);
-  const data=await r.json();
-  if(!r.ok)throw new Error(data.error||"تعذر الاتصال بقاعدة البيانات");
-  renderResults(q,data);
- }catch(e){
-  $("#resultsEmpty").innerHTML=`<div>⚠️</div><h3>قاعدة البيانات غير متصلة</h3><p>${esc(e.message)}</p>`;
- }
+function formatNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "0";
+  return n.toLocaleString("ar-SD");
 }
 
-$("#searchForm").addEventListener("submit",e=>{
- e.preventDefault();searchMedicine($("#medicineInput").value);
- $("#resultsSection").scrollIntoView({behavior:"smooth"});
+function formatUpdatedAt(value) {
+  if (!value) return "وقت التحديث غير متاح";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "وقت التحديث غير متاح";
+
+  return `آخر تحديث: ${date.toLocaleString("ar-SD", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  })}`;
+}
+
+function availabilityInfo(value) {
+  if (value === "available") {
+    return {
+      label: "متوفر الآن",
+      className: "available",
+      icon: "✓"
+    };
+  }
+
+  if (value === "limited") {
+    return {
+      label: "كمية محدودة",
+      className: "limited",
+      icon: "!"
+    };
+  }
+
+  return {
+    label: "غير متوفر",
+    className: "unavailable",
+    icon: "×"
+  };
+}
+
+function show(id) {
+  $(id)?.classList.remove("hidden");
+}
+
+function hide(id) {
+  $(id)?.classList.add("hidden");
+}
+
+function setSearchState(state) {
+  hide("#searchState");
+  hide("#loadingState");
+  hide("#errorState");
+  hide("#resultsWrap");
+
+  if (state === "idle") show("#searchState");
+  if (state === "loading") show("#loadingState");
+  if (state === "error") show("#errorState");
+  if (state === "results") show("#resultsWrap");
+}
+
+function renderResults(results, query) {
+  lastResults = Array.isArray(results) ? results : [];
+
+  $("#resultTitle").textContent = `نتائج البحث عن «${query}»`;
+  $("#resultCount").textContent =
+    `${lastResults.length.toLocaleString("ar-SD")} صيدلية`;
+
+  if (!lastResults.length) {
+    $("#resultsGrid").innerHTML = `
+      <div class="no-results">
+        <div class="state-icon">⌕</div>
+        <h3>لم نجد نتائج لهذا الدواء</h3>
+        <p>
+          لا توجد حاليًا صيدليات معتمدة لديها تحديث متوفر أو محدود
+          لهذا الدواء. جرّب اسمًا آخر أو راجع الاسم العلمي.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  $("#resultsGrid").innerHTML = lastResults.map((item) => {
+    const medicine = item.medicine || {};
+    const pharmacy = item.pharmacy || {};
+    const status = availabilityInfo(item.availability);
+
+    const phone = pharmacy.phone
+      ? `<a class="phone-link" href="tel:${escapeHtml(pharmacy.phone)}">☎ ${escapeHtml(pharmacy.phone)}</a>`
+      : "";
+
+    const address = pharmacy.address
+      ? `<span class="address">📍 ${escapeHtml(pharmacy.address)}</span>`
+      : "";
+
+    return `
+      <article class="result-card">
+        <div class="result-card-top">
+          <div class="pharmacy-icon">🏪</div>
+          <span class="status ${status.className}">
+            <i>${status.icon}</i>${status.label}
+          </span>
+        </div>
+
+        <div class="result-main">
+          <span class="medicine-label">الدواء المطلوب</span>
+          <h3>${escapeHtml(medicine.name || query)}</h3>
+
+          <div class="medicine-details">
+            ${medicine.generic_name ? `<span>الاسم العلمي: <b>${escapeHtml(medicine.generic_name)}</b></span>` : ""}
+            ${medicine.strength ? `<span>التركيز: <b>${escapeHtml(medicine.strength)}</b></span>` : ""}
+            ${medicine.form ? `<span>الشكل: <b>${escapeHtml(medicine.form)}</b></span>` : ""}
+          </div>
+        </div>
+
+        <div class="pharmacy-name">
+          <span>الصيدلية</span>
+          <strong>${escapeHtml(pharmacy.name || "صيدلية معتمدة")}</strong>
+        </div>
+
+        <div class="quantity-box">
+          <div>
+            <span>الكمية المتاحة</span>
+            <strong>${formatNumber(item.quantity)}</strong>
+          </div>
+          <span class="quantity-unit">وحدة</span>
+        </div>
+
+        <div class="result-meta">
+          ${address}
+          ${phone}
+          <span>🕒 ${escapeHtml(formatUpdatedAt(item.updatedAt))}</span>
+        </div>
+
+        <div class="result-actions">
+          ${pharmacy.latitude && pharmacy.longitude
+            ? `<a class="map-link" target="_blank" rel="noopener"
+                 href="https://www.google.com/maps?q=${encodeURIComponent(pharmacy.latitude + "," + pharmacy.longitude)}">
+                 📍 الموقع
+               </a>`
+            : `<span class="map-link muted">📍 الموقع غير محدد</span>`
+          }
+          ${phone ? "" : `<span class="map-link muted">☎ لا يوجد هاتف</span>`}
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function searchMedicine(query) {
+  const q = String(query || "").trim();
+
+  if (!q) {
+    $("#medicineSearch").focus();
+    $("#resultsHint").textContent = "اكتب اسم الدواء أولًا.";
+    setSearchState("idle");
+    return;
+  }
+
+  lastQuery = q;
+  $("#medicineSearch").value = q;
+  $("#resultsHint").textContent = `البحث عن: ${q}`;
+  $("#clearResults").classList.remove("hidden");
+
+  setSearchState("loading");
+
+  try {
+    const response = await fetch(`/api/medicines/search?q=${encodeURIComponent(q)}`, {
+      headers: { "Accept": "application/json" }
+    });
+
+    const data = await response.json().catch(() => []);
+
+    if (!response.ok) {
+      throw new Error(data?.error || "تعذر تنفيذ البحث.");
+    }
+
+    renderResults(data, q);
+    setSearchState("results");
+    $("#search").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    console.error("Medicine search error:", error);
+    $("#errorText").textContent =
+      error.message || "تعذر الاتصال بالخادم. حاول مرة أخرى.";
+    setSearchState("error");
+  }
+}
+
+function clearResults() {
+  lastQuery = "";
+  lastResults = [];
+  $("#medicineSearch").value = "";
+  $("#resultsHint").textContent = "اكتب اسم الدواء ثم اضغط «ابحث الآن».";
+  $("#clearResults").classList.add("hidden");
+  setSearchState("idle");
+}
+
+function initMenu() {
+  $("#menuBtn")?.addEventListener("click", () => {
+    $("nav")?.classList.toggle("open");
+  });
+
+  $$("nav a").forEach((link) => {
+    link.addEventListener("click", () => $("nav")?.classList.remove("open"));
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("#year").textContent = new Date().getFullYear();
+
+  initMenu();
+
+  $("#searchForm")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchMedicine($("#medicineSearch").value);
+  });
+
+  $$("[data-query]").forEach((button) => {
+    button.addEventListener("click", () => {
+      searchMedicine(button.dataset.query);
+    });
+  });
+
+  $("#clearResults")?.addEventListener("click", clearResults);
+  $("#retryBtn")?.addEventListener("click", () => searchMedicine(lastQuery));
+
+  $("#medicineSearch")?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") clearResults();
+  });
 });
-$("#clearBtn").addEventListener("click",()=>{$("#medicineInput").value="";renderResults("",[])});
-$("#prescriptionBtn").addEventListener("click",()=>showModal(`<h3>📷 تصوير الروشتة</h3><p>تم تجهيز الواجهة. سنضيف تحليل الروشتة في المرحلة التالية.</p><button class="full-btn" onclick="closeModal()">حسنًا</button>`));
-$("#mapBtn").addEventListener("click",()=>showModal(`<h3>🗺️ خريطة الصيدليات</h3><p>سيتم عرض الصيدليات وإحداثياتها على الخريطة في المرحلة التالية.</p><button class="full-btn" onclick="closeModal()">حسنًا</button>`));
-$("#locationBtn").addEventListener("click",()=>navigator.geolocation?navigator.geolocation.getCurrentPosition(
-()=>showModal(`<h3>📍 تم تحديد موقعك</h3><p>سنستخدم الموقع لاحقًا لحساب أقرب الصيدليات.</p><button class="full-btn" onclick="closeModal()">حسنًا</button>`),
-()=>showModal(`<h3>📍 لم يتم تحديد الموقع</h3><p>اسمح للتطبيق باستخدام الموقع.</p><button class="full-btn" onclick="closeModal()">حسنًا</button>`)
-):showModal(`<h3>📍 الموقع</h3><p>المتصفح لا يدعم تحديد الموقع.</p><button class="full-btn" onclick="closeModal()">حسنًا</button>`));
-
-$$(".quick-card").forEach(b=>b.addEventListener("click",()=>{
- if(b.dataset.action==="search"){$("#medicineInput").focus();$("#resultsSection").scrollIntoView({behavior:"smooth"})}
- if(b.dataset.action==="prescription")$("#prescriptionBtn").click();
- if(b.dataset.action==="nearby")$("#mapBtn").click();
- if(b.dataset.action==="pharmacy")showModal(`<h3>🏪 تسجيل صيدلية</h3><p>سيتم إنشاء حساب الصيدلية وربط المخزون في المرحلة القادمة.</p><button class="full-btn" onclick="closeModal()">حسنًا</button>`);
-}));
-
-$$(".bottom-nav button").forEach(b=>b.addEventListener("click",()=>{
- $$(".bottom-nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");
- if(b.dataset.nav==="home")scrollTo({top:0,behavior:"smooth"});
- if(b.dataset.nav==="search")$("#medicineInput").focus();
- if(b.dataset.nav==="map")$("#mapBtn").click();
- if(b.dataset.nav==="account")showModal(`<h3>👤 حسابي</h3><p>حساب المستخدم سيضاف في المرحلة التالية.</p><button class="full-btn" onclick="closeModal()">حسنًا</button>`);
-}));
-
-function showModal(html){$("#modalContent").innerHTML=html;$("#modal").classList.add("show")}
-function closeModal(){$("#modal").classList.remove("show")}
-window.closeModal=closeModal;
-$("#modalClose").addEventListener("click",closeModal);
-$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
-renderResults("",[]);
