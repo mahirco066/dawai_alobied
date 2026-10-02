@@ -1,537 +1,308 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-
 <head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1"
-  >
-
-  <title>
-    بوابة الصيدلية | دوائي الأبيض
-  </title>
-
-  <link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
-  >
-
-  <link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
-  >
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-  >
-
-  <link
-    rel="stylesheet"
-    href="pharmacy.css"
-  >
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="بوابة الصيدلية - دوائي الأبيض">
+  <title>بوابة الصيدلية | دوائي الأبيض</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="pharmacy.css?v=1">
 </head>
-
 <body>
 
-  <!-- =========================
-       Header
-  ========================== -->
+<div id="loginView" class="login-screen">
+  <div class="login-card">
+    <div class="logo">💊</div>
+    <span class="eyebrow">دوائي الأبيض</span>
+    <h1>بوابة الصيدلية</h1>
+    <p>سجّل الدخول لإدارة الأدوية وتحديث حالة توفرها في صيدليتك.</p>
 
-  <header class="bar">
+    <form id="loginForm">
+      <label>
+        البريد الإلكتروني
+        <input id="loginEmail" type="email" autocomplete="username" required placeholder="pharmacy@example.com">
+      </label>
 
-    <div class="bar-brand">
+      <label>
+        كلمة المرور
+        <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور">
+      </label>
 
-      <div class="bar-logo">
-        💊
-      </div>
+      <button class="primary wide" type="submit" id="loginBtn">
+        تسجيل الدخول
+      </button>
 
-      <div>
-        <strong>
-          دوائي الأبيض
-        </strong>
+      <div id="loginMsg" class="message"></div>
+    </form>
 
-        <span>
-          بوابة الصيدلية
-        </span>
-      </div>
-
+    <div class="login-note">
+      <span>🔒</span>
+      <span>الدخول متاح للصيدليات المعتمدة من الإدارة.</span>
     </div>
 
+    <a class="back-link" href="/">← العودة إلى دوائي الأبيض</a>
+  </div>
+</div>
 
-    <button
-      id="logoutBtn"
-      class="outline"
-      type="button"
-    >
-      تسجيل الخروج
-    </button>
 
+<div id="appView" class="hidden">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">💊</div>
+      <div>
+        <strong>دوائي الأبيض</strong>
+        <small>بوابة الصيدلية</small>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div class="pharmacy-mini">
+        <span>🏪</span>
+        <div>
+          <strong id="topPharmacyName">الصيدلية</strong>
+          <small>مدير الصيدلية</small>
+        </div>
+      </div>
+      <button id="logoutBtn" class="ghost">تسجيل الخروج</button>
+    </div>
   </header>
 
+  <div class="layout">
 
-  <main>
+    <aside class="sidebar">
+      <div class="side-label">القائمة</div>
 
-    <!-- =========================
-         Login
-    ========================== -->
-
-    <section
-      id="loginView"
-      class="panel login-panel"
-    >
-
-      <div class="icon">
-        🏪
-      </div>
-
-      <h1>
-        دخول الصيدلية
-      </h1>
-
-      <p>
-        حدّث توفر الأدوية ليعرف سكان الأبيض
-        أين يجدون الدواء.
-      </p>
-
-
-      <form id="loginForm">
-
-        <label>
-          البريد الإلكتروني
-
-          <input
-            id="email"
-            type="email"
-            autocomplete="email"
-            required
-          >
-        </label>
-
-
-        <label>
-          كلمة المرور
-
-          <input
-            id="password"
-            type="password"
-            autocomplete="current-password"
-            required
-          >
-        </label>
-
-
-        <button
-          class="primary"
-          type="submit"
-        >
-          تسجيل الدخول
-        </button>
-
-      </form>
-
-
-      <button
-        id="showRegister"
-        class="link"
-        type="button"
-      >
-        تسجيل صيدلية جديدة
+      <button class="nav active" data-view="dashboard">
+        <span>📊</span> الرئيسية
       </button>
 
-
-      <div
-        id="loginMsg"
-        class="msg"
-      ></div>
-
-    </section>
-
-
-    <!-- =========================
-         Register
-    ========================== -->
-
-    <section
-      id="registerView"
-      class="panel hidden"
-    >
-
-      <div class="icon">
-        ➕
-      </div>
-
-      <h1>
-        تسجيل صيدلية
-      </h1>
-
-      <p>
-        سيتم مراجعة الطلب واعتماد الصيدلية من الإدارة.
-      </p>
-
-
-      <form id="registerForm">
-
-        <label>
-          اسم الصيدلية
-
-          <input
-            id="rName"
-            required
-          >
-        </label>
-
-
-        <label>
-          رقم الهاتف
-
-          <input
-            id="rPhone"
-            type="tel"
-            required
-          >
-        </label>
-
-
-        <label>
-          البريد الإلكتروني
-
-          <input
-            id="rEmail"
-            type="email"
-            required
-          >
-        </label>
-
-
-        <label>
-          كلمة المرور
-
-          <input
-            id="rPassword"
-            type="password"
-            minlength="8"
-            required
-          >
-        </label>
-
-
-        <label>
-          العنوان
-
-          <input
-            id="rAddress"
-          >
-        </label>
-
-
-        <label class="check">
-
-          <input
-            id="rDelivery"
-            type="checkbox"
-          >
-
-          تتوفر خدمة التوصيل
-
-        </label>
-
-
-        <button
-          class="primary"
-          type="submit"
-        >
-          إرسال طلب التسجيل
-        </button>
-
-      </form>
-
-
-      <button
-        id="showLogin"
-        class="link"
-        type="button"
-      >
-        العودة إلى تسجيل الدخول
+      <button class="nav" data-view="inventory">
+        <span>📦</span> إدارة الأدوية
       </button>
 
+      <button class="nav" data-view="profile">
+        <span>🏪</span> بيانات الصيدلية
+      </button>
 
-      <div
-        id="registerMsg"
-        class="msg"
-      ></div>
-
-    </section>
-
-
-    <!-- =========================
-         Dashboard
-    ========================== -->
-
-    <section
-      id="dashboardView"
-      class="hidden"
-    >
-
-      <!-- Welcome -->
-
-      <div class="welcome panel">
-
-        <div>
-
-          <span>
-            مرحبًا بكم في
-          </span>
-
-          <h1 id="pharmacyName">
-            الصيدلية
-          </h1>
-
-          <p>
-            حدّث حالة توفر الأدوية والكمية
-            ليسهل على سكان الأبيض العثور عليها.
-          </p>
-
-        </div>
-
-
-        <div class="big-icon">
-          🏪
-        </div>
-
+      <div class="sidebar-footer">
+        <div>دوائي الأبيض</div>
+        <small>منصة البحث عن الأدوية والصيدليات بمدينة الأبيض</small>
       </div>
+    </aside>
 
+    <main class="content">
 
-      <!-- Statistics -->
+      <section id="dashboard" class="view">
 
-      <div class="stats">
-
-        <div class="stat-card">
-
-          <span>
-            إجمالي الأدوية
-          </span>
-
-          <strong id="totalCount">
-            0
-          </strong>
-
-          <small>
-            دواء مسجل
-          </small>
-
-        </div>
-
-
-        <div class="stat-card available-stat">
-
-          <span>
-            متوفرة
-          </span>
-
-          <strong id="availableCount">
-            0
-          </strong>
-
-          <small>
-            متوفر حاليًا
-          </small>
-
-        </div>
-
-
-        <div class="stat-card limited-stat">
-
-          <span>
-            كمية محدودة
-          </span>
-
-          <strong id="limitedCount">
-            0
-          </strong>
-
-          <small>
-            تحتاج متابعة
-          </small>
-
-        </div>
-
-
-        <div class="stat-card unavailable-stat">
-
-          <span>
-            غير متوفرة
-          </span>
-
-          <strong id="unavailableCount">
-            0
-          </strong>
-
-          <small>
-            غير متاحة
-          </small>
-
-        </div>
-
-      </div>
-
-
-      <!-- Inventory -->
-
-      <section class="panel inventory-panel">
-
-        <div class="panel-title">
-
+        <div class="page-head">
           <div>
-
-            <span class="panel-kicker">
-              إدارة المخزون
-            </span>
-
-            <h2>
-              مخزون الأدوية
-            </h2>
-
-            <p>
-              حدّث الكمية وحالة توفر كل دواء.
-            </p>
-
+            <span class="eyebrow">مرحبًا بكم</span>
+            <h1 id="welcomeName">لوحة الصيدلية</h1>
+            <p>تابع أدوية صيدليتك وحدّث حالة توفرها حتى تظهر للمستخدمين بصورة صحيحة.</p>
           </div>
 
-
-          <button
-            id="refreshBtn"
-            class="outline"
-            type="button"
-          >
-            🔄 تحديث
+          <button class="primary" onclick="showView('inventory')">
+            ＋ تحديث المخزون
           </button>
-
         </div>
 
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-icon blue">💊</div>
+            <span>إجمالي الأدوية</span>
+            <strong id="statTotal">0</strong>
+            <small>ضمن مخزون الصيدلية</small>
+          </article>
 
-        <!-- Search and filter -->
+          <article class="stat-card success">
+            <div class="stat-icon">✓</div>
+            <span>متوفر الآن</span>
+            <strong id="statAvailable">0</strong>
+            <small>يظهر للمستخدمين كمتوفر</small>
+          </article>
 
-        <div
-          id="inventoryTools"
-          class="inventory-tools"
-        >
+          <article class="stat-card warning">
+            <div class="stat-icon">!</div>
+            <span>كمية محدودة</span>
+            <strong id="statLimited">0</strong>
+            <small>تحتاج متابعة</small>
+          </article>
 
-          <div class="inventory-search">
-
-            <span>
-              🔎
-            </span>
-
-            <input
-              id="inventorySearch"
-              type="search"
-              placeholder="ابحث باسم الدواء أو الاسم العلمي..."
-              autocomplete="off"
-            >
-
-          </div>
-
-
-          <select
-            id="inventoryFilter"
-            class="inventory-filter"
-          >
-
-            <option value="all">
-              كل الأدوية
-            </option>
-
-            <option value="available">
-              🟢 المتوفرة
-            </option>
-
-            <option value="limited">
-              🟡 الكمية المحدودة
-            </option>
-
-            <option value="unavailable">
-              🔴 غير المتوفرة
-            </option>
-
-          </select>
-
+          <article class="stat-card danger">
+            <div class="stat-icon">×</div>
+            <span>غير متوفر</span>
+            <strong id="statUnavailable">0</strong>
+            <small>غير ظاهر ضمن المتوفر</small>
+          </article>
         </div>
 
+        <div class="grid-2">
 
-        <!-- Results information -->
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <span class="eyebrow">آخر التحديثات</span>
+                <h2>أدوية الصيدلية</h2>
+              </div>
+              <button class="text-btn" onclick="showView('inventory')">إدارة المخزون ←</button>
+            </div>
+            <div id="recentList" class="recent-list"></div>
+          </section>
 
-        <div
-          class="inventory-summary"
-          id="inventorySummary"
-        >
-          جاري تحميل الأدوية...
-        </div>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <span class="eyebrow">معلومات الحساب</span>
+                <h2>بيانات الصيدلية</h2>
+              </div>
+              <button class="text-btn" onclick="showView('profile')">عرض البيانات ←</button>
+            </div>
 
-
-        <!-- Inventory list -->
-
-        <div
-          id="inventoryList"
-          class="inventory-list"
-        ></div>
-
-
-        <!-- No results -->
-
-        <div
-          id="inventoryNoResults"
-          class="inventory-no-results hidden"
-        >
-
-          <div class="no-results-icon">
-            🔎
-          </div>
-
-          <h3>
-            لا توجد نتائج
-          </h3>
-
-          <p>
-            جرّب البحث باسم آخر أو غيّر حالة الفلترة.
-          </p>
-
-        </div>
-
-
-        <!-- Empty -->
-
-        <div
-          id="inventoryEmpty"
-          class="empty-inventory hidden"
-        >
-
-          <div class="empty-icon">
-            💊
-          </div>
-
-          <h3>
-            لا توجد أدوية مسجلة
-          </h3>
-
-          <p>
-            لم تتم إضافة أدوية إلى النظام بعد.
-          </p>
+            <div class="profile-summary">
+              <div class="profile-row">
+                <span>🏪</span>
+                <div><small>اسم الصيدلية</small><strong id="profileName">-</strong></div>
+              </div>
+              <div class="profile-row">
+                <span>☎</span>
+                <div><small>الهاتف</small><strong id="profilePhone">-</strong></div>
+              </div>
+              <div class="profile-row">
+                <span>✉</span>
+                <div><small>البريد</small><strong id="profileEmail">-</strong></div>
+              </div>
+              <div class="profile-row">
+                <span>📍</span>
+                <div><small>العنوان</small><strong id="profileAddress">-</strong></div>
+              </div>
+            </div>
+          </section>
 
         </div>
 
       </section>
 
-    </section>
 
-  </main>
+      <section id="inventory" class="view hidden">
+
+        <div class="page-head">
+          <div>
+            <span class="eyebrow">المخزون</span>
+            <h1>إدارة الأدوية</h1>
+            <p>أضف الأدوية إلى مخزون صيدليتك وحدد الكمية وحالة التوفر.</p>
+          </div>
+
+          <button id="addMedicineBtn" class="primary">
+            ＋ إضافة دواء
+          </button>
+        </div>
+
+        <section class="panel">
+
+          <div class="toolbar">
+            <div class="search">
+              <span>🔎</span>
+              <input id="inventorySearch" placeholder="ابحث باسم الدواء أو الاسم العلمي...">
+            </div>
+
+            <select id="inventoryFilter">
+              <option value="all">كل الحالات</option>
+              <option value="available">متوفر</option>
+              <option value="limited">كمية محدودة</option>
+              <option value="unavailable">غير متوفر</option>
+            </select>
+
+            <button id="refreshBtn" class="ghost">↻ تحديث</button>
+          </div>
+
+          <div id="inventorySummary" class="summary"></div>
+
+          <div id="inventoryTable" class="table-wrap"></div>
+
+        </section>
+
+      </section>
 
 
-  <script src="pharmacy.js?v=3"></script>
+      <section id="profile" class="view hidden">
 
+        <div class="page-head">
+          <div>
+            <span class="eyebrow">بيانات الحساب</span>
+            <h1>بيانات الصيدلية</h1>
+            <p>البيانات المعتمدة من الإدارة المركزية.</p>
+          </div>
+        </div>
+
+        <section class="profile-card">
+
+          <div class="profile-hero">
+            <div class="big-store">🏪</div>
+            <div>
+              <span class="eyebrow">الصيدلية المعتمدة</span>
+              <h2 id="profilePageName">-</h2>
+              <span id="profileStatus" class="status approved">معتمدة</span>
+            </div>
+          </div>
+
+          <div class="profile-grid">
+
+            <div class="info-box">
+              <span>☎</span>
+              <small>رقم الهاتف</small>
+              <strong id="pagePhone">-</strong>
+            </div>
+
+            <div class="info-box">
+              <span>✉</span>
+              <small>البريد الإلكتروني</small>
+              <strong id="pageEmail">-</strong>
+            </div>
+
+            <div class="info-box">
+              <span>📍</span>
+              <small>العنوان</small>
+              <strong id="pageAddress">-</strong>
+            </div>
+
+            <div class="info-box">
+              <span>🕐</span>
+              <small>ساعات العمل</small>
+              <strong id="pageHours">-</strong>
+            </div>
+
+            <div class="info-box">
+              <span>🚚</span>
+              <small>خدمة التوصيل</small>
+              <strong id="pageDelivery">-</strong>
+            </div>
+
+          </div>
+
+          <div class="notice">
+            <strong>ملاحظة:</strong>
+            لتعديل بيانات الصيدلية الأساسية أو البريد الإلكتروني، يرجى التواصل مع إدارة منصة دوائي الأبيض.
+          </div>
+
+        </section>
+
+      </section>
+
+    </main>
+  </div>
+</div>
+
+
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <button id="closeModal" class="modal-close">×</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="pharmacy.js?v=1"></script>
 </body>
-
 </html>
