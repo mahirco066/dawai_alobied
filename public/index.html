@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="دوائي الأبيض - ابحث عن الدواء واعرف الصيدليات التي يتوفر فيها بمدينة الأبيض">
+  <title>دوائي الأبيض | منصة البحث عن الأدوية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container nav">
+    <a class="brand" href="#home" aria-label="دوائي الأبيض">
+      <span class="brand-mark" aria-hidden="true"><i></i></span>
+      <span class="brand-text">
+        <strong>دوائي الأبيض</strong>
+        <small>صحتك ... أولويتنا</small>
+      </span>
+    </a>
+
+    <nav id="mainNav" aria-label="التنقل الرئيسي">
+      <a class="active" href="#home">الرئيسية <span>⌂</span></a>
+      <a href="#search">الصيدليات <span>▣</span></a>
+      <a href="#search">الأدوية <span>◈</span></a>
+      <a href="#how">حول المشروع <span>●</span></a>
+    </nav>
+
+    <a class="login-link" href="pharmacy.html">↪ <span>تسجيل الدخول</span> <b>♙</b></a>
+    <button id="menuBtn" class="menu-btn" aria-label="فتح القائمة">☰</button>
+  </div>
+</header>
+
+<main id="home">
+
+  <section class="hero">
+    <div class="hero-decor hero-decor-a"></div>
+    <div class="hero-decor hero-decor-b"></div>
+    <div class="leaf leaf-1"></div>
+    <div class="leaf leaf-2"></div>
+
+    <div class="container hero-inner">
+      <div class="medicine-visual" aria-hidden="true">
+        <div class="pill pill-1"></div>
+        <div class="pill pill-2"></div>
+        <div class="pill pill-3"></div>
+        <div class="bottle">
+          <div class="bottle-cap"></div>
+          <div class="bottle-body">
+            <span class="bottle-label">DOUAI</span>
+            <span class="bottle-cross">+</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-center">
+        <span class="hero-kicker">مدينة الأبيض – شمال كردفان</span>
+        <h1>ابحث عن <span>أدويتك</span> بسهولة</h1>
+        <p>تعرف على توفر الأدوية في الصيدليات القريبة منك</p>
+
+        <form id="searchForm" class="hero-search">
+          <input id="medicineSearch" autocomplete="off"
+                 placeholder="ابحث باسم الدواء أو الاسم العلمي..."
+                 aria-label="اسم الدواء">
+          <button type="submit" aria-label="البحث">⌕</button>
+        </form>
+
+        <div class="hero-actions">
+          <button type="button" id="prescriptionBtn" class="feature-card prescription-feature">
+            <span class="feature-icon camera">▣</span>
+            <span><b>البحث بتصوير الروشتة</b><small>اصنع الروشتة واكتشف الأدوية</small></span>
+          </button>
+          <button type="button" class="feature-card quick-feature" data-query="Panadol">
+            <span class="feature-icon pill-icon">◈</span>
+            <span><b>البحث السريع</b><small>أدوية شائعة ومستخدمة</small></span>
+          </button>
+          <button type="button" class="feature-card upload-feature" onclick="document.getElementById('prescriptionInput')?.click()">
+            <span class="feature-icon upload-icon">⌗</span>
+            <span><b>رفع صورة من الجهاز</b><small>اختر صورة الروشتة</small></span>
+          </button>
+        </div>
+
+        <input id="prescriptionInput" type="file" accept="image/*" capture="environment" hidden>
+      </div>
+    </div>
+
+    <div class="hero-wave"></div>
+  </section>
+
+  <section class="workspace">
+    <div class="container workspace-grid">
+
+      <div class="main-column">
+        <section class="popular-box">
+          <div class="popular-title"><span>أدوية شائعة</span><b>🔥</b></div>
+          <div class="popular-list">
+            <button type="button" data-query="Augmentin">Augmentin</button>
+            <button type="button" data-query="Panadol">Panadol</button>
+            <button type="button" data-query="Amoxicillin">Amoxicillin</button>
+            <button type="button" data-query="Paracetamol">Paracetamol</button>
+            <button type="button" data-query="Ibuprofen">Ibuprofen</button>
+            <button type="button" data-query="Omeprazole">Omeprazole</button>
+          </div>
+        </section>
+
+        <section id="search" class="results-section">
+          <div class="results-head">
+            <div>
+              <span class="section-kicker">نتائج البحث</span>
+              <h2>توفر الدواء في الصيدليات</h2>
+              <p id="resultsHint">اكتب اسم الدواء ثم اضغط على زر البحث.</p>
+            </div>
+            <button id="clearResults" class="clear-btn hidden">مسح النتائج</button>
+          </div>
+
+          <div id="searchState" class="search-state">
+            <div class="state-icon">⌕</div>
+            <h3>ابدأ بالبحث عن دواء</h3>
+            <p>ستظهر هنا الصيدليات المعتمدة التي لديها تحديث فعلي لمخزون الدواء.</p>
+          </div>
+
+          <div id="loadingState" class="search-state hidden">
+            <div class="spinner"></div>
+            <h3>جاري البحث...</h3>
+            <p>نبحث في مخزون الصيدليات المعتمدة.</p>
+          </div>
+
+          <div id="errorState" class="search-state error hidden">
+            <div class="state-icon">!</div>
+            <h3>تعذر تنفيذ البحث</h3>
+            <p id="errorText">حدث خطأ أثناء الاتصال بالخادم.</p>
+            <button id="retryBtn" class="primary">إعادة المحاولة</button>
+          </div>
+
+          <div id="resultsWrap" class="hidden">
+            <div class="result-summary">
+              <div>
+                <strong id="resultTitle">نتائج البحث</strong>
+                <span id="resultCount"></span>
+              </div>
+              <span class="live-badge"><i></i> بيانات محدثة من الصيدليات</span>
+            </div>
+            <div id="resultsGrid" class="results-grid"></div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="sidebar">
+        <section class="why-card">
+          <div class="side-title"><h3>لماذا دوائي الأبيض؟</h3><span>✦</span></div>
+          <ul>
+            <li><i>✓</i> مخزون الصيدليات الفعلي</li>
+            <li><i>✓</i> بيانات محدثة باستمرار</li>
+            <li><i>✓</i> صيدليات معتمدة وموثوقة</li>
+            <li><i>✓</i> توفير الوقت والجهد</li>
+            <li><i>✓</i> خدمة صحية أفضل لك ولعائلتك</li>
+          </ul>
+        </section>
+
+        <section class="prescription-promo">
+          <div class="rx-illustration">
+            <div class="phone-shape"><div class="phone-screen">✚</div></div>
+            <div class="rx-paper"><span>Rx</span><b>────</b><b>────</b><b>───</b></div>
+          </div>
+          <div class="promo-body">
+            <h3>البحث بتصوير الروشتة</h3>
+            <p>التقط صورة الروشتة واكتشف الأدوية فورًا.</p>
+            <button type="button" class="promo-btn" onclick="document.getElementById('prescriptionInput')?.click()">ابدأ الآن <span>▣</span></button>
+          </div>
+        </section>
+
+        <section class="community-card">
+          <span class="heart">♥</span>
+          <strong>معًا نحو مجتمع أكثر صحة</strong>
+          <p>دوائي الأبيض ... دائمًا بالقرب منك</p>
+        </section>
+      </aside>
+
+    </div>
+  </section>
+
+  <section id="how" class="how-section">
+    <div class="container">
+      <div class="section-head centered">
+        <span class="section-kicker">بسهولة</span>
+        <h2>كيف تعمل المنصة؟</h2>
+        <p>ثلاث خطوات للوصول إلى الدواء بصورة أسرع.</p>
+      </div>
+      <div class="steps">
+        <article><span>01</span><div>⌕</div><h3>ابحث عن الدواء</h3><p>اكتب اسم الدواء التجاري أو الاسم العلمي.</p></article>
+        <article><span>02</span><div>▣</div><h3>شاهد الصيدليات</h3><p>تعرف على الصيدليات المعتمدة التي حدّثت مخزونها.</p></article>
+        <article><span>03</span><div>▦</div><h3>اعرف الكمية والحالة</h3><p>شاهد الكمية وحالة التوفر وآخر وقت للتحديث.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="pharmacy-cta">
+    <div class="container pharmacy-cta-inner">
+      <div>
+        <span class="eyebrow">للصيدليات</span>
+        <h2>هل أنت صاحب صيدلية؟</h2>
+        <p>حدّث مخزونك ليصل للمستخدمين الباحثين عن الدواء.</p>
+      </div>
+      <a href="pharmacy.html" class="primary">دخول بوابة الصيدلية ←</a>
+    </div>
+  </section>
+
+  <div id="ocrPanel" class="ocr-panel hidden">
+    <div class="container">
+      <div class="ocr-head">
+        <div><strong>قراءة الروشتة</strong><span id="ocrStatus">جاري تجهيز الصورة...</span></div>
+        <button type="button" id="ocrClose" aria-label="إغلاق">×</button>
+      </div>
+      <div class="ocr-progress"><div id="ocrProgressBar"></div></div>
+      <div class="ocr-preview-wrap">
+        <img id="prescriptionPreview" alt="صورة الروشتة">
+        <div><span class="ocr-label">النص المستخرج</span><div id="ocrText" class="ocr-text">سيظهر النص هنا...</div></div>
+      </div>
+      <div id="ocrMedicines" class="ocr-medicines"></div>
+      <p class="ocr-note">ملاحظة: قراءة الروشتات المكتوبة بخط اليد قد لا تكون دقيقة دائمًا. راجع أسماء الأدوية قبل الاعتماد على النتائج.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div><strong>دوائي الأبيض</strong><span>منصة البحث عن الأدوية والصيدليات بمدينة الأبيض</span></div>
+    <div><span>© <span id="year"></span> جميع الحقوق محفوظة</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="app.js?v=20"></script>
+</body>
+</html>
