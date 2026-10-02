@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>لوحة الإدارة المركزية | دوائي الأبيض</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css?v=8">
+</head>
+<body>
+
+<div id="login" class="login-screen">
+  <div class="login-card">
+    <div class="brand-mark">💊</div>
+    <span class="eyebrow">دوائي الأبيض</span>
+    <h1>لوحة الإدارة المركزية</h1>
+    <p>إدارة الصيدليات والأدوية والمخزون والحسابات من مكان واحد.</p>
+    <form id="loginForm">
+      <label>اسم المستخدم<input id="username" autocomplete="username" required></label>
+      <label>كلمة المرور<input id="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary wide" type="submit">دخول لوحة التحكم</button>
+    </form>
+    <div id="loginMsg" class="message"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">💊</div>
+      <div><strong>دوائي الأبيض</strong><small>لوحة الإدارة المركزية</small></div>
+    </div>
+    <div class="top-actions">
+      <span id="adminName" class="admin-user"></span>
+      <button id="logout" class="ghost">تسجيل الخروج</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-title">الإدارة</div>
+      <button class="nav active" data-view="home">📊 <span>الرئيسية</span></button>
+      <button class="nav" data-view="pharmacies">🏪 <span>الصيدليات</span><em id="pending">0</em></button>
+      <button class="nav" data-view="medicines">💊 <span>الأدوية</span></button>
+      <button class="nav" data-view="inventory">📦 <span>المخزون</span></button>
+      <button class="nav" data-view="accounts">👥 <span>الحسابات</span></button>
+    </aside>
+
+    <main class="content">
+      <section id="home" class="view">
+        <div class="page-head">
+          <div><span class="eyebrow">نظرة عامة</span><h1>لوحة المعلومات</h1><p>متابعة حالة منصة دوائي الأبيض وإدارة عناصرها الأساسية.</p></div>
+          <button id="refresh" class="ghost">↻ تحديث البيانات</button>
+        </div>
+
+        <div class="stat-grid">
+          <article class="stat-card"><span>إجمالي الصيدليات</span><strong id="nPh">0</strong><small>كل الحالات</small><b>🏪</b></article>
+          <article class="stat-card warning"><span>طلبات المراجعة</span><strong id="nPe">0</strong><small>تحتاج اعتمادًا</small><b>⏳</b></article>
+          <article class="stat-card success"><span>الصيدليات المعتمدة</span><strong id="nAp">0</strong><small>مسموح لها بالعمل</small><b>✅</b></article>
+          <article class="stat-card danger"><span>الصيدليات الموقوفة</span><strong id="nSu">0</strong><small>موقوفة حاليًا</small><b>⛔</b></article>
+          <article class="stat-card blue"><span>الأدوية</span><strong id="nMe">0</strong><small>أدوية فعالة</small><b>💊</b></article>
+          <article class="stat-card purple"><span>سجلات المخزون</span><strong id="nIn">0</strong><small>تحديثات الصيدليات</small><b>📦</b></article>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="panel">
+            <div class="panel-head"><div><span class="eyebrow">الأولوية</span><h2>طلبات الصيدليات</h2></div><button class="text-btn" onclick="show('pharmacies')">عرض الكل ←</button></div>
+            <div id="homePending" class="mini-list"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><div><span class="eyebrow">النشاط</span><h2>آخر تحديثات المخزون</h2></div><button class="text-btn" onclick="show('inventory')">عرض الكل ←</button></div>
+            <div id="homeInventory" class="mini-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="pharmacies" class="view hidden">
+        <div class="page-head"><div><span class="eyebrow">إدارة الشبكة</span><h1>الصيدليات</h1><p>اعتماد الصيدليات وتعديل بياناتها أو إيقافها.</p></div><button id="refreshPh" class="ghost">↻ تحديث</button></div>
+        <section class="panel">
+          <div class="toolbar">
+            <div class="search"><span>🔎</span><input id="pharmacySearch" placeholder="ابحث باسم الصيدلية أو الهاتف أو البريد..."></div>
+            <select id="filter"><option value="">كل الحالات</option><option value="pending">قيد المراجعة</option><option value="approved">معتمدة</option><option value="suspended">موقوفة</option></select>
+          </div>
+          <div id="pharmacySummary" class="summary"></div>
+          <div id="pharmacyTable" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="medicines" class="view hidden">
+        <div class="page-head"><div><span class="eyebrow">قاعدة الأدوية</span><h1>الأدوية</h1><p>إضافة وتعديل وتعطيل وحذف الأدوية المسجلة في المنصة.</p></div><button id="addMedicine" class="primary">＋ إضافة دواء</button></div>
+        <section class="panel">
+          <div class="toolbar"><div class="search"><span>🔎</span><input id="medicineSearch" placeholder="ابحث باسم الدواء أو الاسم العلمي..."></div><select id="medicineFilter"><option value="all">كل الأدوية</option><option value="active">فعالة</option><option value="inactive">غير فعالة</option></select></div>
+          <div id="medicineSummary" class="summary"></div>
+          <div id="medicineTable" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="inventory" class="view hidden">
+        <div class="page-head"><div><span class="eyebrow">المتابعة</span><h1>مراقبة المخزون</h1><p>متابعة آخر ما أعلنته الصيدليات عن توفر الأدوية.</p></div><button id="refreshInv" class="ghost">↻ تحديث</button></div>
+        <section class="panel">
+          <div class="toolbar"><div class="search"><span>🔎</span><input id="inventorySearch" placeholder="ابحث باسم الصيدلية أو الدواء..."></div><select id="inventoryFilter"><option value="all">كل الحالات</option><option value="available">متوفر</option><option value="limited">كمية محدودة</option><option value="unavailable">غير متوفر</option></select></div>
+          <div id="inventorySummary" class="summary"></div>
+          <div id="inventoryTable" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="accounts" class="view hidden">
+        <div class="page-head"><div><span class="eyebrow">الوصول</span><h1>حسابات الصيدليات</h1><p>تفعيل أو تعطيل حسابات الدخول المرتبطة بالصيدليات.</p></div><button id="refreshAccounts" class="ghost">↻ تحديث</button></div>
+        <section class="panel">
+          <div class="toolbar"><div class="search"><span>🔎</span><input id="accountSearch" placeholder="ابحث بالبريد أو اسم الصيدلية..."></div><select id="accountFilter"><option value="all">كل الحسابات</option><option value="active">نشطة</option><option value="inactive">معطلة</option></select></div>
+          <div id="accountSummary" class="summary"></div>
+          <div id="accountTable" class="table-wrap"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="modal" class="modal"><div class="modal-box"><button id="close" class="modal-close">×</button><div id="modalBody"></div></div></div>
+<script src="admin.js?v=7"></script>
+</body>
+</html>
