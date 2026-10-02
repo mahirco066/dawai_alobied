@@ -381,9 +381,7 @@ window.setPharmacyStatus =
 window.viewPharmacy = id => {
 
   const p =
-    pharmacies.find(
-      x => x.id === id
-    );
+    pharmacies.find(x => x.id === id);
 
   if(!p) return;
 
@@ -392,73 +390,256 @@ window.viewPharmacy = id => {
 
   openModal(`
 
-<h3>تفاصيل الصيدلية</h3>
+<h3>إدارة الصيدلية</h3>
 
-<div class="info-box">
+<div class="form-grid">
 
-<b>${esc(p.name)}</b>
-<br>
+  <div>
+    <label>اسم الصيدلية</label>
+    <input
+      id="pharmacyName"
+      value="${esc(p.name || "")}"
+      placeholder="اسم الصيدلية"
+    >
+  </div>
 
-الهاتف:
-${esc(p.phone || "-")}
-<br>
+  <div>
+    <label>رقم الهاتف</label>
+    <input
+      id="pharmacyPhone"
+      value="${esc(p.phone || "")}"
+      placeholder="رقم الهاتف"
+    >
+  </div>
 
-البريد:
-${esc(a.email || "-")}
-<br>
+  <div>
+    <label>البريد الإلكتروني</label>
+    <input
+      id="pharmacyEmail"
+      type="email"
+      value="${esc(a.email || "")}"
+      placeholder="البريد الإلكتروني"
+    >
+  </div>
 
-العنوان:
-${esc(p.address || "-")}
-<br>
+  <div>
+    <label>العنوان</label>
+    <input
+      id="pharmacyAddress"
+      value="${esc(p.address || "")}"
+      placeholder="عنوان الصيدلية"
+    >
+  </div>
 
-ساعات العمل:
-${esc(p.opening_hours || "-")}
-<br>
+  <div>
+    <label>ساعات العمل</label>
+    <input
+      id="pharmacyHours"
+      value="${esc(p.opening_hours || "")}"
+      placeholder="مثال: 8 صباحًا - 11 مساءً"
+    >
+  </div>
 
-التوصيل:
-${p.delivery ? "متاح" : "غير متاح"}
-<br>
+  <div>
+    <label>حالة الصيدلية</label>
+    <select id="pharmacyStatus">
+      <option value="pending" ${p.status === "pending" ? "selected" : ""}>قيد المراجعة</option>
+      <option value="approved" ${p.status === "approved" ? "selected" : ""}>معتمدة</option>
+      <option value="suspended" ${p.status === "suspended" ? "selected" : ""}>موقوفة</option>
+    </select>
+  </div>
 
-الحالة:
-${
-  p.status === "approved"
-    ? "معتمدة"
-    : p.status === "suspended"
-      ? "موقوفة"
-      : "قيد المراجعة"
-}
+</div>
+
+<label class="checkbox-row">
+  <input
+    id="pharmacyDelivery"
+    type="checkbox"
+    ${p.delivery ? "checked" : ""}
+  >
+  <span>الصيدلية توفر خدمة التوصيل</span>
+</label>
+
+<div class="modal-actions">
+
+  <button
+    class="primary"
+    onclick="updatePharmacy('${p.id}')"
+  >
+    حفظ بيانات الصيدلية
+  </button>
+
+  <button
+    class="ghost"
+    onclick="updatePharmacyEmail('${p.id}')"
+  >
+    تحديث البريد فقط
+  </button>
 
 </div>
 
 <div class="reset-password-box">
 
-<div class="reset-password-title">
-🔑 إعادة تعيين كلمة المرور
+  <div class="reset-password-title">
+    🔑 تغيير كلمة المرور
+  </div>
+
+  <p>
+    تعيين كلمة مرور جديدة لحساب الصيدلية.
+  </p>
+
+  <input
+    id="resetPassword"
+    type="password"
+    minlength="8"
+    placeholder="كلمة المرور الجديدة — 8 أحرف على الأقل"
+    autocomplete="new-password"
+  >
+
+  <button
+    class="primary wide"
+    onclick="resetPharmacyPassword('${p.id}')"
+  >
+    تحديث كلمة المرور
+  </button>
+
 </div>
 
-<p>
-يمكن للإدارة تعيين كلمة مرور جديدة لحساب هذه الصيدلية.
-</p>
+<div class="danger-zone">
 
-<input
-  id="resetPassword"
-  type="password"
-  minlength="8"
-  placeholder="كلمة المرور الجديدة — 8 أحرف على الأقل"
-  autocomplete="new-password"
->
+  <div>
+    <strong>منطقة الخطر</strong>
+    <p>حذف الصيدلية يؤدي إلى حذف بيانات المخزون والحساب المرتبط بها.</p>
+  </div>
 
-<button
-  class="primary wide"
-  onclick="resetPharmacyPassword('${p.id}')">
-  تحديث كلمة المرور
-</button>
+  <button
+    class="act stop"
+    onclick="deletePharmacy('${p.id}')"
+  >
+    حذف الصيدلية
+  </button>
 
 </div>
 
 `);
 
 };
+
+window.updatePharmacy =
+  async id => {
+
+    const p =
+      pharmacies.find(x => x.id === id);
+
+    if(!p) return;
+
+    const name =
+      $("#pharmacyName")?.value?.trim() || "";
+
+    const phone =
+      $("#pharmacyPhone")?.value?.trim() || "";
+
+    const address =
+      $("#pharmacyAddress")?.value?.trim() || "";
+
+    const opening_hours =
+      $("#pharmacyHours")?.value?.trim() || "";
+
+    const delivery =
+      Boolean($("#pharmacyDelivery")?.checked);
+
+    const status =
+      $("#pharmacyStatus")?.value || p.status;
+
+    if(!name){
+      alert("اسم الصيدلية مطلوب.");
+      return;
+    }
+
+    if(!["pending","approved","suspended"].includes(status)){
+      alert("حالة الصيدلية غير صحيحة.");
+      return;
+    }
+
+    if(!confirm(`هل تريد حفظ تعديلات الصيدلية: ${name}؟`)){
+      return;
+    }
+
+    try{
+
+      await api(
+        `/api/admin/pharmacies/${id}`,
+        {
+          method:"PATCH",
+          body:JSON.stringify({
+            name,
+            phone,
+            address,
+            opening_hours,
+            delivery
+          })
+        }
+      );
+
+      if(status !== p.status){
+        await api(
+          `/api/admin/pharmacies/${id}/status`,
+          {
+            method:"PATCH",
+            body:JSON.stringify({status})
+          }
+        );
+      }
+
+      alert("تم حفظ بيانات الصيدلية بنجاح.");
+
+      closeModal();
+      await refreshAll();
+
+    }catch(e){
+      alert(e.message || "تعذر تحديث بيانات الصيدلية.");
+    }
+  };
+
+window.deletePharmacy =
+  async id => {
+
+    const p =
+      pharmacies.find(x => x.id === id);
+
+    if(!p) return;
+
+    const answer =
+      prompt(
+        `لحذف الصيدلية «${p.name}» نهائيًا، اكتب كلمة حذف:`
+      );
+
+    if(answer !== "حذف"){
+      return;
+    }
+
+    if(!confirm(`تأكيد نهائي: حذف الصيدلية «${p.name}»؟`)){
+      return;
+    }
+
+    try{
+
+      await api(
+        `/api/admin/pharmacies/${id}`,
+        {
+          method:"DELETE"
+        }
+      );
+
+      alert("تم حذف الصيدلية بنجاح.");
+
+      closeModal();
+      await refreshAll();
+
+    }catch(e){
+      alert(e.message || "تعذر حذف الصيدلية.");
+    }
+  };
 
 window.resetPharmacyPassword =
   async id => {
@@ -517,7 +698,9 @@ window.resetPharmacyPassword =
       alert(e.message);
 
     }
-  };window.updatePharmacyEmail =
+  };
+
+window.updatePharmacyEmail =
   async id => {
 
     const input =
@@ -649,73 +832,159 @@ function medicineForm(m = {}){
 >
 </div>
 
+<div>
+<label>الحالة</label>
+
+<select id="medActive">
+
+<option value="true"
+  ${m.active !== false ? "selected" : ""}>
+  فعال
+</option>
+
+<option value="false"
+  ${m.active === false ? "selected" : ""}>
+  غير فعال
+</option>
+
+</select>
 </div>
 
-<label class="check-row">
+</div>
 
-<input
-  id="medActive"
-  type="checkbox"
-  ${m.active !== false ? "checked" : ""}
->
-
-<span>الدواء فعال في النظام</span>
-
-</label>
+<div class="modal-actions">
 
 <button
-  class="primary wide"
-  onclick="saveMedicine()">
+  class="primary"
+  onclick="saveMedicine()"
+>
   حفظ الدواء
 </button>
+
+</div>
 
 `;
 }
 
-function filteredMedicines(){
+window.saveMedicine =
+  async () => {
+
+    const name =
+      $("#medName")?.value?.trim() || "";
+
+    const generic_name =
+      $("#medGeneric")?.value?.trim() || "";
+
+    const strength =
+      $("#medStrength")?.value?.trim() || "";
+
+    const form =
+      $("#medForm")?.value?.trim() || "";
+
+    const active =
+      $("#medActive")?.value !== "false";
+
+    if(!name){
+
+      alert("اسم الدواء مطلوب.");
+
+      return;
+    }
+
+    try{
+
+      if(window._editingMedicine){
+
+        await api(
+          `/api/admin/medicines/${window._editingMedicine}`,
+          {
+            method:"PATCH",
+            body:JSON.stringify({
+              name,
+              generic_name,
+              strength,
+              form,
+              active
+            })
+          }
+        );
+
+      }else{
+
+        await api(
+          "/api/admin/medicines",
+          {
+            method:"POST",
+            body:JSON.stringify({
+              name,
+              generic_name,
+              strength,
+              form,
+              active
+            })
+          }
+        );
+      }
+
+      closeModal();
+
+      await loadMedicines();
+      await loadStats();
+
+    }catch(e){
+
+      alert(e.message);
+
+    }
+  };
+
+function renderMedicines(){
 
   const q =
     ($("#medicineSearch")?.value || "")
       .trim()
       .toLowerCase();
 
-  const f =
-    $("#medicineFilter")?.value ||
-    "all";
-
-  return medicines.filter(m => {
-
-    const text = [
-      m.name,
-      m.generic_name,
-      m.strength,
-      m.form
-    ]
-      .map(v =>
-        String(v || "")
-          .toLowerCase()
-      )
-      .join(" ");
-
-    return (
-      (!q || text.includes(q)) &&
-      (
-        f === "all" ||
-        (f === "active" && m.active) ||
-        (f === "inactive" && !m.active)
-      )
-    );
-  });
-}
-
-function renderMedicines(){
+  const filter =
+    $("#medicineFilter")?.value || "all";
 
   const list =
-    filteredMedicines();
+    medicines.filter(m => {
+
+      if(
+        filter === "active" &&
+        m.active === false
+      ){
+        return false;
+      }
+
+      if(
+        filter === "inactive" &&
+        m.active !== false
+      ){
+        return false;
+      }
+
+      if(!q) return true;
+
+      return [
+        m.name,
+        m.generic_name,
+        m.strength,
+        m.form
+      ].some(v =>
+        String(v || "")
+          .toLowerCase()
+          .includes(q)
+      );
+
+    });
 
   if($("#medicineSummary")){
+
     $("#medicineSummary").textContent =
       `عرض ${list.length} من ${medicines.length} دواء`;
+
   }
 
   if(!$("#medicineTable")){
@@ -725,20 +994,17 @@ function renderMedicines(){
   $("#medicineTable").innerHTML =
     list.length
       ? `
-
 <table class="data">
 
 <thead>
-
 <tr>
 <th>الدواء</th>
 <th>الاسم العلمي</th>
 <th>التركيز</th>
 <th>الشكل</th>
 <th>الحالة</th>
-<th>الإجراء</th>
+<th>الإجراءات</th>
 </tr>
-
 </thead>
 
 <tbody>
@@ -764,37 +1030,20 @@ ${esc(m.form || "-")}
 </td>
 
 <td>
-
 ${
-  m.active
+  m.active !== false
     ? '<span class="pill approved">فعال</span>'
     : '<span class="pill suspended">غير فعال</span>'
 }
-
 </td>
 
 <td>
 
 <button
   class="act warn"
-  onclick="editMedicine('${m.id}')">
-  تعديل
-</button>
-
-<button
-  class="act ${
-    m.active
-      ? "stop"
-      : "ok"
-  }"
-  onclick="toggleMedicine('${m.id}')">
-
-  ${
-    m.active
-      ? "تعطيل"
-      : "تفعيل"
-  }
-
+  onclick="editMedicine('${m.id}')"
+>
+تعديل
 </button>
 
 </td>
@@ -806,117 +1055,17 @@ ${
 </tbody>
 
 </table>
-
 `
       : `
 <div class="empty">
 لا توجد أدوية مطابقة.
 </div>
 `;
+
 }
 
-window.editMedicine = id => {
-
-  const m =
-    medicines.find(
-      x => x.id === id
-    );
-
-  if(!m) return;
-
-  window._editingMedicine = m;
-
-  openModal(`
-    <h3>تعديل الدواء</h3>
-    ${medicineForm(m)}
-  `);
-};
-
-window.saveMedicine =
-  async () => {
-
-    const name =
-      $("#medName")?.value
-        ?.trim() || "";
-
-    const generic_name =
-      $("#medGeneric")?.value
-        ?.trim() || "";
-
-    const strength =
-      $("#medStrength")?.value
-        ?.trim() || "";
-
-    const form =
-      $("#medForm")?.value
-        ?.trim() || "";
-
-    const active =
-      $("#medActive")?.checked !== false;
-
-    if(!name){
-
-      alert(
-        "يرجى إدخال اسم الدواء."
-      );
-
-      return;
-    }
-
-    const editing =
-      window._editingMedicine;
-
-    try{
-
-      const url =
-        editing
-          ? `/api/admin/medicines/${editing.id}`
-          : "/api/admin/medicines";
-
-      const method =
-        editing
-          ? "PATCH"
-          : "POST";
-
-      await api(
-        url,
-        {
-          method,
-          body:JSON.stringify({
-            name,
-            generic_name,
-            strength,
-            form,
-            active
-          })
-        }
-      );
-
-      alert(
-        editing
-          ? "تم تحديث الدواء بنجاح."
-          : "تمت إضافة الدواء بنجاح."
-      );
-
-      window._editingMedicine =
-        null;
-
-      closeModal();
-
-      await Promise.all([
-        loadMedicines(),
-        loadStats()
-      ]);
-
-    }catch(e){
-
-      alert(e.message);
-
-    }
-  };
-
-window.toggleMedicine =
-  async id => {
+window.editMedicine =
+  id => {
 
     const m =
       medicines.find(
@@ -925,41 +1074,12 @@ window.toggleMedicine =
 
     if(!m) return;
 
-    const action =
-      m.active
-        ? "تعطيل"
-        : "تفعيل";
+    window._editingMedicine = id;
 
-    if(
-      !confirm(
-        `هل تريد ${action} الدواء ${m.name}؟`
-      )
-    ){
-      return;
-    }
-
-    try{
-
-      await api(
-        `/api/admin/medicines/${id}`,
-        {
-          method:"PATCH",
-          body:JSON.stringify({
-            active:!m.active
-          })
-        }
-      );
-
-      await Promise.all([
-        loadMedicines(),
-        loadStats()
-      ]);
-
-    }catch(e){
-
-      alert(e.message);
-
-    }
+    openModal(`
+      <h3>تعديل الدواء</h3>
+      ${medicineForm(m)}
+    `);
   };
 
 async function loadInventory(){
@@ -973,48 +1093,45 @@ async function loadInventory(){
   renderHomeInventory();
 }
 
-function filteredInventory(){
+function renderInventory(){
 
   const q =
     ($("#inventorySearch")?.value || "")
       .trim()
       .toLowerCase();
 
-  const f =
-    $("#inventoryFilter")?.value ||
-    "all";
-
-  return inventory.filter(x => {
-
-    const text = [
-      x.pharmacy?.name,
-      x.medicine?.name,
-      x.medicine?.generic_name
-    ]
-      .map(v =>
-        String(v || "")
-          .toLowerCase()
-      )
-      .join(" ");
-
-    return (
-      (!q || text.includes(q)) &&
-      (
-        f === "all" ||
-        x.availability === f
-      )
-    );
-  });
-}
-
-function renderInventory(){
+  const filter =
+    $("#inventoryFilter")?.value || "all";
 
   const list =
-    filteredInventory();
+    inventory.filter(x => {
+
+      if(
+        filter !== "all" &&
+        x.availability !== filter
+      ){
+        return false;
+      }
+
+      if(!q) return true;
+
+      return [
+        x.pharmacy_name,
+        x.medicine_name,
+        x.generic_name
+      ].some(v =>
+        String(v || "")
+          .toLowerCase()
+          .includes(q)
+      );
+
+    });
 
   if($("#inventorySummary")){
+
     $("#inventorySummary").textContent =
-      `عرض ${list.length} من ${inventory.length} سجل مخزون`;
+      `عرض ${list.length} من ${inventory.length} سجل`;
+
   }
 
   if(!$("#inventoryTable")){
@@ -1024,19 +1141,16 @@ function renderInventory(){
   $("#inventoryTable").innerHTML =
     list.length
       ? `
-
 <table class="data">
 
 <thead>
-
 <tr>
 <th>الصيدلية</th>
 <th>الدواء</th>
 <th>الكمية</th>
-<th>الحالة</th>
+<th>التوفر</th>
 <th>آخر تحديث</th>
 </tr>
-
 </thead>
 
 <tbody>
@@ -1046,36 +1160,17 @@ ${list.map(x => `
 <tr>
 
 <td>
-
-<b>
-${esc(x.pharmacy?.name || "-")}
-</b>
-
-<br>
-
-<small>
-${esc(x.pharmacy?.status || "")}
-</small>
-
+<b>${esc(x.pharmacy_name || "-")}</b>
 </td>
 
 <td>
-
-<b>
-${esc(x.medicine?.name || "-")}
-</b>
-
+${esc(x.medicine_name || "-")}
 <br>
-
-<small>
-${esc(x.medicine?.generic_name || "")}
-${esc(x.medicine?.strength || "")}
-</small>
-
+<small>${esc(x.strength || "")}</small>
 </td>
 
 <td>
-<b>${Number(x.quantity || 0)}</b>
+${esc(x.quantity ?? 0)}
 </td>
 
 <td>
@@ -1093,68 +1188,79 @@ ${dateText(x.updated_at)}
 </tbody>
 
 </table>
-
 `
       : `
 <div class="empty">
-لا توجد سجلات مخزون مطابقة.
+لا توجد سجلات مخزون.
 </div>
 `;
-}
-
-function loadAccounts(){
-
-  renderAccounts();
 
 }
 
-function filteredAccounts(){
+function renderAccounts(){
 
   const q =
     ($("#accountSearch")?.value || "")
       .trim()
       .toLowerCase();
 
-  const f =
-    $("#accountFilter")?.value ||
-    "all";
+  const filter =
+    $("#accountFilter")?.value || "all";
 
-  return pharmacies.filter(p => {
+  const rows = [];
 
-    const a =
-      p.pharmacy_accounts?.[0] ||
-      {};
+  pharmacies.forEach(p => {
 
-    const text = [
-      a.email,
-      p.name,
-      p.phone
-    ]
-      .map(v =>
-        String(v || "")
-          .toLowerCase()
-      )
-      .join(" ");
+    const list =
+      p.pharmacy_accounts || [];
 
-    return (
-      (!q || text.includes(q)) &&
-      (
-        f === "all" ||
-        (f === "active" && a.active) ||
-        (f === "inactive" && !a.active)
-      )
-    );
+    list.forEach(a => {
+
+      rows.push({
+        ...a,
+        pharmacy_name:p.name,
+        pharmacy_status:p.status
+      });
+
+    });
+
   });
-}
-
-function renderAccounts(){
 
   const list =
-    filteredAccounts();
+    rows.filter(a => {
+
+      if(
+        filter === "active" &&
+        !a.active
+      ){
+        return false;
+      }
+
+      if(
+        filter === "inactive" &&
+        a.active
+      ){
+        return false;
+      }
+
+      if(!q) return true;
+
+      return [
+        a.email,
+        a.pharmacy_name
+      ].some(v =>
+        String(v || "")
+          .toLowerCase()
+          .includes(q)
+      );
+
+    });
 
   if($("#accountSummary")){
+
     $("#accountSummary").textContent =
-      `عرض ${list.length} من ${pharmacies.length} حساب`;
+      `عرض ${list.length} من ${rows.length} حساب`;
+
   }
 
   if(!$("#accountTable")){
@@ -1164,45 +1270,25 @@ function renderAccounts(){
   $("#accountTable").innerHTML =
     list.length
       ? `
-
 <table class="data">
 
 <thead>
-
 <tr>
 <th>الصيدلية</th>
-<th>البريد</th>
+<th>البريد الإلكتروني</th>
+<th>الحالة</th>
 <th>حالة الصيدلية</th>
-<th>حساب الدخول</th>
-<th>الإجراء</th>
 </tr>
-
 </thead>
 
 <tbody>
 
-${list.map(p => {
-
-  const a =
-    p.pharmacy_accounts?.[0] ||
-    {};
-
-  return `
+${list.map(a => `
 
 <tr>
 
 <td>
-
-<b>
-${esc(p.name)}
-</b>
-
-<br>
-
-<small>
-${esc(p.phone || "")}
-</small>
-
+<b>${esc(a.pharmacy_name || "-")}</b>
 </td>
 
 <td>
@@ -1210,68 +1296,61 @@ ${esc(a.email || "-")}
 </td>
 
 <td>
-${statusPill(p.status)}
+${accountPill(a.active)}
 </td>
 
 <td>
-${accountPill(a.active !== false)}
-</td>
-
-<td>
-
-<button
-  class="act warn"
-  onclick="viewPharmacy('${p.id}')">
-  🔑 إدارة الحساب
-</button>
-
+${statusPill(a.pharmacy_status)}
 </td>
 
 </tr>
 
-`;
-
-}).join("")}
+`).join("")}
 
 </tbody>
 
 </table>
-
 `
       : `
 <div class="empty">
-لا توجد حسابات مطابقة.
+لا توجد حسابات.
 </div>
 `;
+
 }
 
 function renderHomePending(){
-
-  const p =
-    pharmacies
-      .filter(x =>
-        x.status === "pending"
-      )
-      .slice(0,6);
 
   if(!$("#homePending")){
     return;
   }
 
+  const list =
+    pharmacies
+      .filter(p => p.status === "pending")
+      .slice(0,5);
+
   $("#homePending").innerHTML =
-    p.length
-      ? p.map(x => `
+    list.length
+      ? list.map(p => `
 
-<div class="mini">
+<div class="mini-row">
 
-<span>
-🏪 ${esc(x.name)}
-</span>
+<div>
+
+<b>${esc(p.name)}</b>
+
+<small>
+${esc(p.phone || "بدون هاتف")}
+</small>
+
+</div>
 
 <button
   class="act ok"
-  onclick="setPharmacyStatus('${x.id}','approved')">
-  اعتماد
+  onclick="setPharmacyStatus('${p.id}','approved')"
+>
+اعتماد
 </button>
 
 </div>
@@ -1282,32 +1361,44 @@ function renderHomePending(){
 لا توجد طلبات معلقة حاليًا.
 </div>
 `;
+
 }
 
 function renderHomeInventory(){
-
-  const list =
-    inventory.slice(0,6);
 
   if(!$("#homeInventory")){
     return;
   }
 
+  const list =
+    inventory
+      .slice()
+      .sort(
+        (a,b) =>
+          new Date(b.updated_at || 0) -
+          new Date(a.updated_at || 0)
+      )
+      .slice(0,5);
+
   $("#homeInventory").innerHTML =
     list.length
       ? list.map(x => `
 
-<div class="mini">
+<div class="mini-row">
 
-<span>
-💊 ${esc(x.medicine?.name)}
-—
-${esc(x.pharmacy?.name)}
-</span>
+<div>
 
-${inventoryPill(
-  x.availability
-)}
+<b>
+${esc(x.medicine_name || "-")}
+</b>
+
+<small>
+${esc(x.pharmacy_name || "-")}
+</small>
+
+</div>
+
+${inventoryPill(x.availability)}
 
 </div>
 
@@ -1317,7 +1408,10 @@ ${inventoryPill(
 لا توجد تحديثات مخزون.
 </div>
 `;
-}async function refreshAll(){
+
+}
+
+async function refreshAll(){
 
   try{
 
@@ -1328,14 +1422,15 @@ ${inventoryPill(
       loadInventory()
     ]);
 
-    renderHomePending();
-    renderHomeInventory();
-
   }catch(e){
 
+    console.error(e);
+
     if(
-      e.message.includes("جلسة الإدارة") ||
-      e.message.includes("تسجيل دخول الإدارة")
+      e.message &&
+      /token|unauthorized|غير مصرح|جلسة/i.test(
+        e.message
+      )
     ){
 
       localStorage.removeItem(
@@ -1346,138 +1441,350 @@ ${inventoryPill(
 
       location.reload();
 
-    }else{
-
-      console.error(e);
-
-      alert(e.message);
-
+      return;
     }
+
+    alert(
+      e.message ||
+      "تعذر تحديث بيانات لوحة الإدارة."
+    );
+
   }
+
 }
-
-
-/* =========================
-   تهيئة لوحة الإدارة
-   بعد اكتمال تحميل الصفحة
-========================= */
 
 function initAdmin(){
 
   /* التنقل */
-  document.addEventListener("click", function(event){
-    const nav = event.target.closest(".nav");
-    if(!nav) return;
 
-    event.preventDefault();
-    const view = nav.dataset.view;
-    if(view) show(view);
-  });
+  document.addEventListener(
+    "click",
+    function(event){
 
-  $("#filter")?.addEventListener("change", loadPharmacies);
-  $("#pharmacySearch")?.addEventListener("input", renderPharmacies);
-  $("#medicineSearch")?.addEventListener("input", renderMedicines);
-  $("#medicineFilter")?.addEventListener("change", renderMedicines);
-  $("#inventorySearch")?.addEventListener("input", renderInventory);
-  $("#inventoryFilter")?.addEventListener("change", renderInventory);
-  $("#accountSearch")?.addEventListener("input", renderAccounts);
-  $("#accountFilter")?.addEventListener("change", renderAccounts);
-  $("#refresh")?.addEventListener("click", refreshAll);
-  $("#refreshPh")?.addEventListener("click", loadPharmacies);
-  $("#refreshInv")?.addEventListener("click", loadInventory);
-  $("#refreshAccounts")?.addEventListener("click", renderAccounts);
-  $("#close")?.addEventListener("click", closeModal);
+      const nav =
+        event.target.closest(".nav");
 
-  $("#modal")?.addEventListener("click", function(e){
-    if(e.target.id === "modal") closeModal();
-  });
+      if(!nav) return;
 
-  $("#logout")?.addEventListener("click", function(){
-    localStorage.removeItem("dawai_admin_token");
-    token = null;
-    location.reload();
-  });
+      event.preventDefault();
 
-  $("#addMedicine")?.addEventListener("click", function(){
-    window._editingMedicine = null;
-    openModal(`
-      <h3>إضافة دواء جديد</h3>
-      ${medicineForm()}
-    `);
-  });
+      const view =
+        nav.dataset.view;
+
+      if(view){
+        show(view);
+      }
+
+    }
+  );
+
+
+  $("#filter")?.addEventListener(
+    "change",
+    loadPharmacies
+  );
+
+  $("#pharmacySearch")?.addEventListener(
+    "input",
+    renderPharmacies
+  );
+
+  $("#medicineSearch")?.addEventListener(
+    "input",
+    renderMedicines
+  );
+
+  $("#medicineFilter")?.addEventListener(
+    "change",
+    renderMedicines
+  );
+
+  $("#inventorySearch")?.addEventListener(
+    "input",
+    renderInventory
+  );
+
+  $("#inventoryFilter")?.addEventListener(
+    "change",
+    renderInventory
+  );
+
+  $("#accountSearch")?.addEventListener(
+    "input",
+    renderAccounts
+  );
+
+  $("#accountFilter")?.addEventListener(
+    "change",
+    renderAccounts
+  );
+
+  $("#refresh")?.addEventListener(
+    "click",
+    refreshAll
+  );
+
+  $("#refreshPh")?.addEventListener(
+    "click",
+    loadPharmacies
+  );
+
+  $("#refreshInv")?.addEventListener(
+    "click",
+    loadInventory
+  );
+
+  $("#refreshAccounts")?.addEventListener(
+    "click",
+    renderAccounts
+  );
+
+  $("#close")?.addEventListener(
+    "click",
+    closeModal
+  );
+
+  $("#modal")?.addEventListener(
+    "click",
+    function(e){
+
+      if(e.target.id === "modal"){
+        closeModal();
+      }
+
+    }
+  );
+
+  $("#logout")?.addEventListener(
+    "click",
+    function(){
+
+      localStorage.removeItem(
+        "dawai_admin_token"
+      );
+
+      token = null;
+
+      location.reload();
+
+    }
+  );
+
+
+  $("#addMedicine")?.addEventListener(
+    "click",
+    function(){
+
+      window._editingMedicine = null;
+
+      openModal(`
+        <h3>إضافة دواء جديد</h3>
+        ${medicineForm()}
+      `);
+
+    }
+  );
+
 
   /* تسجيل دخول الإدارة */
-  const loginForm = document.querySelector("#loginForm");
+
+  const loginForm =
+    document.querySelector("#loginForm");
 
   if(loginForm){
-    loginForm.addEventListener("submit", async function(e){
-      e.preventDefault();
 
-      const loginMsg = document.querySelector("#loginMsg");
-      const loginButton = loginForm.querySelector('button[type="submit"]');
-      const username = document.querySelector("#username")?.value?.trim() || "";
-      const password = document.querySelector("#password")?.value || "";
+    loginForm.addEventListener(
+      "submit",
+      async function(e){
 
-      if(loginMsg) loginMsg.textContent = "جاري التحقق...";
-      if(loginButton){
-        loginButton.disabled = true;
-        loginButton.dataset.oldText = loginButton.textContent;
-        loginButton.textContent = "جاري الدخول...";
-      }
+        e.preventDefault();
 
-      try{
-        const d = await api("/api/admin/login", {
-          method:"POST",
-          body:JSON.stringify({username,password})
-        });
+        const loginMsg =
+          document.querySelector("#loginMsg");
 
-        token = d.token;
-        localStorage.setItem("dawai_admin_token", token);
+        const loginButton =
+          loginForm.querySelector(
+            'button[type="submit"]'
+          );
 
-        $("#login")?.classList.add("hidden");
-        $("#app")?.classList.remove("hidden");
-        if($("#adminName")) $("#adminName").textContent = d.username || username;
-        if(loginMsg) loginMsg.textContent = "";
+        const username =
+          document.querySelector(
+            "#username"
+          )?.value?.trim() || "";
 
-        await refreshAll();
-      }catch(err){
-        console.error("Admin login error:", err);
+        const password =
+          document.querySelector(
+            "#password"
+          )?.value || "";
+
         if(loginMsg){
-          loginMsg.textContent = err.message || "فشل تسجيل الدخول.";
-        }else{
-          alert(err.message || "فشل تسجيل الدخول.");
+          loginMsg.textContent =
+            "جاري التحقق...";
         }
-      }finally{
+
         if(loginButton){
-          loginButton.disabled = false;
-          loginButton.textContent = loginButton.dataset.oldText || "دخول لوحة التحكم";
+
+          loginButton.disabled = true;
+
+          loginButton.dataset.oldText =
+            loginButton.textContent;
+
+          loginButton.textContent =
+            "جاري الدخول...";
+
         }
+
+        try{
+
+          const d =
+            await api(
+              "/api/admin/login",
+              {
+                method:"POST",
+                body:JSON.stringify({
+                  username,
+                  password
+                })
+              }
+            );
+
+          token = d.token;
+
+          localStorage.setItem(
+            "dawai_admin_token",
+            token
+          );
+
+          $("#login")?.classList.add(
+            "hidden"
+          );
+
+          $("#app")?.classList.remove(
+            "hidden"
+          );
+
+          if($("#adminName")){
+            $("#adminName").textContent =
+              d.username || username;
+          }
+
+          if(loginMsg){
+            loginMsg.textContent = "";
+          }
+
+          await refreshAll();
+
+        }catch(err){
+
+          console.error(
+            "Admin login error:",
+            err
+          );
+
+          if(loginMsg){
+
+            loginMsg.textContent =
+              err.message ||
+              "فشل تسجيل الدخول.";
+
+          }else{
+
+            alert(
+              err.message ||
+              "فشل تسجيل الدخول."
+            );
+
+          }
+
+        }finally{
+
+          if(loginButton){
+
+            loginButton.disabled = false;
+
+            loginButton.textContent =
+              loginButton.dataset.oldText ||
+              "دخول لوحة التحكم";
+
+          }
+
+        }
+
       }
-    });
+    );
+
   }else{
-    console.error("لم يتم العثور على #loginForm بعد تحميل الصفحة.");
+
+    console.error(
+      "لم يتم العثور على #loginForm بعد تحميل الصفحة."
+    );
+
   }
+
 
   /* استعادة جلسة الإدارة */
+
   if(token){
+
     (async function(){
+
       try{
-        const d = await api("/api/admin/me");
-        $("#login")?.classList.add("hidden");
-        $("#app")?.classList.remove("hidden");
-        if($("#adminName")) $("#adminName").textContent = d.username || "admin";
+
+        const d =
+          await api(
+            "/api/admin/me"
+          );
+
+        $("#login")?.classList.add(
+          "hidden"
+        );
+
+        $("#app")?.classList.remove(
+          "hidden"
+        );
+
+        if($("#adminName")){
+
+          $("#adminName").textContent =
+            d.username || "admin";
+
+        }
+
         await refreshAll();
+
       }catch(error){
-        console.error("Admin session error:", error);
-        localStorage.removeItem("dawai_admin_token");
+
+        console.error(
+          "Admin session error:",
+          error
+        );
+
+        localStorage.removeItem(
+          "dawai_admin_token"
+        );
+
         token = null;
+
       }
+
     })();
+
   }
+
 }
 
-if(document.readyState === "loading"){
-  document.addEventListener("DOMContentLoaded", initAdmin, {once:true});
+if(
+  document.readyState === "loading"
+){
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initAdmin,
+    {once:true}
+  );
+
 }else{
+
   initAdmin();
+
 }
